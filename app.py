@@ -189,11 +189,21 @@ def api_screen_time():
 # Serve OpenCV Haar cascade files
 @app.route('/haarcascade_frontalface_alt2.xml')
 def serve_face_cascade():
-    return send_from_directory('static/models', 'haarcascade_frontalface_alt2.xml')
+    print("Serving face cascade file...")
+    try:
+        return send_from_directory('static/models', 'haarcascade_frontalface_alt2.xml')
+    except Exception as e:
+        print(f"Error serving face cascade: {e}")
+        return str(e), 500
 
 @app.route('/haarcascade_eye.xml')
 def serve_eye_cascade():
-    return send_from_directory('static/models', 'haarcascade_eye.xml')
+    print("Serving eye cascade file...")
+    try:
+        return send_from_directory('static/models', 'haarcascade_eye.xml')
+    except Exception as e:
+        print(f"Error serving eye cascade: {e}")
+        return str(e), 500
 
 # API routes for eye tracking
 @app.route('/api/toggle-background', methods=['POST'])
@@ -264,5 +274,7 @@ if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     # Set debug to False in production
     debug = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
+    
     print(f"Starting EyeCare AI on port {port} with debug={debug}")
+    
     app.run(host='0.0.0.0', port=port, debug=debug)

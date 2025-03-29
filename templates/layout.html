@@ -74,7 +74,7 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container">
-            <a class="navbar-brand" href="/">
+            <a class="navbar-brand" href="{{ url_for('home') }}">
                 <i class="bi bi-eye eye-icon"></i> EyeCare AI
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -83,19 +83,19 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/' %}active{% endif %}" href="/">Home</a>
+                        <a class="nav-link {% if request.path == '/' %}active{% endif %}" href="{{ url_for('home') }}">Home</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/live-tracking' %}active{% endif %}" href="/live-tracking">Live Tracking</a>
+                        <a class="nav-link {% if request.path == '/live-tracking' %}active{% endif %}" href="{{ url_for('live_tracking') }}">Live Tracking</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/reports' %}active{% endif %}" href="/reports">Reports</a>
+                        <a class="nav-link {% if request.path == '/reports' %}active{% endif %}" href="{{ url_for('reports') }}">Reports</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/eye-exercises' %}active{% endif %}" href="/eye-exercises">Eye Exercises</a>
+                        <a class="nav-link {% if request.path == '/eye-exercises' %}active{% endif %}" href="{{ url_for('eye_exercises') }}">Eye Exercises</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/settings' %}active{% endif %}" href="/settings">Settings</a>
+                        <a class="nav-link {% if request.path == '/settings' %}active{% endif %}" href="{{ url_for('settings') }}">Settings</a>
                     </li>
                 </ul>
             </div>

@@ -107,13 +107,15 @@ function loadClassifiers() {
     
     // Load the face classifier
     faceClassifier = new cv.CascadeClassifier();
-    faceClassifier.load('haarcascade_frontalface_alt2');
+    const faceCascadePath = window.location.origin + '/haarcascade_frontalface_alt2.xml';
+    faceClassifier.load(faceCascadePath);
     
     updateStatus('Loading eye classifier...');
     
     // Load the eye classifier
     eyeClassifier = new cv.CascadeClassifier();
-    eyeClassifier.load('haarcascade_eye');
+    const eyeCascadePath = window.location.origin + '/haarcascade_eye.xml';
+    eyeClassifier.load(eyeCascadePath);
     
     updateStatus('Classifiers loaded. Starting detection...');
     
