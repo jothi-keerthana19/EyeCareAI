@@ -1,0 +1,150 @@
+{% extends "layout.html" %}
+
+{% block title %}Home Dashboard{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="mb-4">Eye Health Dashboard</h1>
+        <p class="lead">Welcome to EyeCare AI, your personal eye health assistant. Keep track of your blink rate, monitor drowsiness, and maintain healthy screen habits.</p>
+    </div>
+</div>
+
+<div class="row mb-5">
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-header">Blink Rate</div>
+            <div class="card-body text-center">
+                <div class="metric-value {% if metrics.is_healthy_blink %}healthy{% elif metrics.current_blink_rate < 12 %}danger{% else %}warning{% endif %}">
+                    {{ metrics.current_blink_rate }} <span style="font-size: 1rem">bpm</span>
+                </div>
+                <div class="metric-label">Recommended: 15-20 blinks per minute</div>
+                <div class="progress mt-3">
+                    <div class="progress-bar 
+                        {% if metrics.is_healthy_blink %}bg-success{% elif metrics.current_blink_rate < 12 %}bg-danger{% else %}bg-warning{% endif %}" 
+                        role="progressbar" 
+                        style="width: {{ (metrics.current_blink_rate / 30) * 100 }}%" 
+                        aria-valuenow="{{ metrics.current_blink_rate }}" 
+                        aria-valuemin="0" 
+                        aria-valuemax="30">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-header">Drowsiness Level</div>
+            <div class="card-body text-center">
+                <div class="metric-value 
+                    {% if metrics.current_drowsiness >= 70 %}danger
+                    {% elif metrics.current_drowsiness >= 50 %}warning
+                    {% else %}healthy{% endif %}">
+                    {{ metrics.current_drowsiness }}%
+                </div>
+                <div class="metric-label">Alert < 50% < Drowsy</div>
+                <div class="progress mt-3">
+                    <div class="progress-bar 
+                        {% if metrics.current_drowsiness >= 70 %}bg-danger
+                        {% elif metrics.current_drowsiness >= 50 %}bg-warning
+                        {% else %}bg-success{% endif %}" 
+                        role="progressbar" 
+                        style="width: {{ metrics.current_drowsiness }}%" 
+                        aria-valuenow="{{ metrics.current_drowsiness }}" 
+                        aria-valuemin="0" 
+                        aria-valuemax="100">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-header">Screen Time Today</div>
+            <div class="card-body text-center">
+                <div class="metric-value 
+                    {% if metrics.avg_daily_screen_time <= 4 %}healthy
+                    {% elif metrics.avg_daily_screen_time <= 6 %}warning
+                    {% else %}danger{% endif %}">
+                    {{ metrics.avg_daily_screen_time }} <span style="font-size: 1rem">hrs</span>
+                </div>
+                <div class="metric-label">Recommended: < 6 hours daily</div>
+                <div class="progress mt-3">
+                    <div class="progress-bar 
+                        {% if metrics.avg_daily_screen_time <= 4 %}bg-success
+                        {% elif metrics.avg_daily_screen_time <= 6 %}bg-warning
+                        {% else %}bg-danger{% endif %}" 
+                        role="progressbar" 
+                        style="width: {{ (metrics.avg_daily_screen_time / 10) * 100 }}%" 
+                        aria-valuenow="{{ metrics.avg_daily_screen_time }}" 
+                        aria-valuemin="0" 
+                        aria-valuemax="10">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-lightbulb"></i> Eye Health Insights
+            </div>
+            <div class="card-body">
+                {% for insight in insights %}
+                    <div class="alert alert-{{ insight.type }} insight-card">
+                        {{ insight.message }}
+                    </div>
+                {% endfor %}
+                
+                <div class="mt-4">
+                    <h5>Tips for Healthy Eyes</h5>
+                    <ul>
+                        <li>Follow the 20-20-20 rule: Every 20 minutes, look at something 20 feet away for 20 seconds</li>
+                        <li>Maintain proper lighting to reduce eye strain</li>
+                        <li>Keep your screen at arm's length and slightly below eye level</li>
+                        <li>Use artificial tears if your eyes feel dry</li>
+                        <li>Take regular breaks from screen time</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-activity"></i> Quick Actions
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-3">
+                    <a href="/live-tracking" class="btn btn-primary">
+                        <i class="bi bi-camera-video"></i> Start Eye Tracking
+                    </a>
+                    <a href="/eye-exercises" class="btn btn-success">
+                        <i class="bi bi-activity"></i> Eye Exercises
+                    </a>
+                    <button class="btn btn-outline-secondary">
+                        <i class="bi bi-alarm"></i> Set Break Reminder
+                    </button>
+                    <button class="btn btn-outline-secondary">
+                        <i class="bi bi-file-earmark-medical"></i> Export Health Report
+                    </button>
+                    <button class="btn btn-outline-secondary">
+                        <i class="bi bi-gear"></i> Calibrate Eye Detection
+                    </button>
+                </div>
+                
+                <div class="text-center mt-4">
+                    <p class="text-muted">Last tracked: <strong>35 minutes ago</strong></p>
+                    <p class="text-muted">Next break in: <strong>25 minutes</strong></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
