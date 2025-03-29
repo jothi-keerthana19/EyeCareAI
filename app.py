@@ -260,4 +260,9 @@ def eye_exercises():
     return render_template('eye_exercises.html')
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    # Use environment variables for port if available (for hosting platforms)
+    port = int(os.environ.get('PORT', 5000))
+    # Set debug to False in production
+    debug = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
+    print(f"Starting EyeCare AI on port {port} with debug={debug}")
+    app.run(host='0.0.0.0', port=port, debug=debug)

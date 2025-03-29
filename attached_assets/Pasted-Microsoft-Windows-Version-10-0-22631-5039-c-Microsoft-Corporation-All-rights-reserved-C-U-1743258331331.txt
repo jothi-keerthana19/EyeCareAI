@@ -1,0 +1,59 @@
+Microsoft Windows [Version 10.0.22631.5039]
+(c) Microsoft Corporation. All rights reserved.
+
+C:\Users\jothi>
+
+C:\Users\jothi>cd "C:\Users\jothi\Downloads\eyecare-ai-github"
+
+C:\Users\jothi\Downloads\eyecare-ai-github>git init
+Initialized empty Git repository in C:/Users/jothi/Downloads/eyecare-ai-github/.git/
+
+C:\Users\jothi\Downloads\eyecare-ai-github>git add .
+warning: in the working copy of '.gitignore', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'LICENSE', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'README.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'requirements.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'static/js/eye_detection.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'static/models/haarcascade_eye.xml', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'static/models/haarcascade_frontalface_alt2.xml', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'templates/eye_exercises.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'templates/home.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'templates/layout.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'templates/live_tracking.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'templates/reports.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'templates/settings.html', LF will be replaced by CRLF the next time Git touches it
+
+C:\Users\jothi\Downloads\eyecare-ai-github>git commit -m "Initial commit"
+[master (root-commit) cc08bcd] Initial commit
+ 14 files changed, 36096 insertions(+)
+ create mode 100644 .gitignore
+ create mode 100644 LICENSE
+ create mode 100644 README.md
+ create mode 100644 app.py
+ create mode 100644 requirements.txt
+ create mode 100644 static/js/eye_detection.js
+ create mode 100644 static/models/haarcascade_eye.xml
+ create mode 100644 static/models/haarcascade_frontalface_alt2.xml
+ create mode 100644 templates/eye_exercises.html
+ create mode 100644 templates/home.html
+ create mode 100644 templates/layout.html
+ create mode 100644 templates/live_tracking.html
+ create mode 100644 templates/reports.html
+ create mode 100644 templates/settings.html
+
+C:\Users\jothi\Downloads\eyecare-ai-github>git branch -M main
+
+C:\Users\jothi\Downloads\eyecare-ai-github>git remote add origin https://github.com/jothi-keerthana19/EyeCare-AI.git
+
+C:\Users\jothi\Downloads\eyecare-ai-github>git push -u origin main
+To https://github.com/jothi-keerthana19/EyeCare-AI.git
+ ! [rejected]        main -> main (fetch first)
+error: failed to push some refs to 'https://github.com/jothi-keerthana19/EyeCare-AI.git'
+hint: Updates were rejected because the remote contains work that you do not
+hint: have locally. This is usually caused by another repository pushing to
+hint: the same ref. If you want to integrate the remote changes, use
+hint: 'git pull' before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+
+C:\Users\jothi\Downloads\eyecare-ai-github>

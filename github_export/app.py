@@ -1,163 +1,168 @@
-from flask import Flask, render_template, request, jsonify, send_from_directory
+from flask import Flask, render_template, jsonify, request, send_file, Response
+import random
+import time
+import threading
+import datetime
 import os
 import json
-import random
-import threading
-import time
-from datetime import datetime, timedelta
+import numpy as np
+from collections import deque
+import os
 
 app = Flask(__name__)
 
-# Background processing flag
-background_processing = False
+# Global variables
+background_thread = None
+background_thread_running = False
 
-# Simulated data for eye health metrics
+# Mock data class for eye health metrics
 class EyeHealthData:
     def __init__(self):
-        self.blink_data = self.generate_blink_data()
-        self.drowsiness_data = self.generate_drowsiness_data()
-        self.screen_time = self.generate_screen_time()
+        self.blink_history = deque(maxlen=60)  # Store up to 60 minutes of data
+        self.drowsiness_history = deque(maxlen=60)
+        self.screen_time = 0
+        self.last_update = datetime.datetime.now()
+        
+        # Pre-populate with some initial data
+        self._initialize_data()
+    
+    def _initialize_data(self):
+        # Add some initial data points (last hour)
+        now = datetime.datetime.now()
+        for i in range(60, 0, -1):
+            time_point = now - datetime.timedelta(minutes=i)
+            self.blink_history.append({
+                'timestamp': time_point.strftime('%H:%M'),
+                'value': random.randint(10, 25)
+            })
+            self.drowsiness_history.append({
+                'timestamp': time_point.strftime('%H:%M'),
+                'value': random.uniform(0, 0.75)
+            })
     
     def generate_blink_data(self):
-        # Generate simulated blink data for the last 24 hours
-        data = []
-        now = datetime.now()
+        """Generate realistic blink rate data"""
+        # Normal blink rate is 15-20 per minute
+        current_time = datetime.datetime.now().strftime('%H:%M')
+        blink_rate = random.randint(10, 25)
         
-        for i in range(24):
-            time = now - timedelta(hours=24-i)
-            # Generate blink rate between 10-25 blinks per minute
-            blink_rate = round(random.uniform(10, 25), 1)
-            # Lower blink rates in the evening to simulate fatigue
-            if time.hour >= 18:
-                blink_rate = round(random.uniform(8, 15), 1)
-            
-            data.append({
-                'timestamp': time.strftime('%H:%M'),
-                'blink_rate': blink_rate,
-                'is_healthy': blink_rate >= 15
-            })
+        # Add new data point
+        self.blink_history.append({
+            'timestamp': current_time,
+            'value': blink_rate
+        })
         
-        return data
+        # Convert to list for JSON serialization
+        return list(self.blink_history)
     
     def generate_drowsiness_data(self):
-        # Generate simulated drowsiness data for the last 24 hours
-        data = []
-        now = datetime.now()
+        """Generate realistic drowsiness detection data"""
+        current_time = datetime.datetime.now().strftime('%H:%M')
         
-        for i in range(24):
-            time = now - timedelta(hours=24-i)
-            # Generate drowsiness level between 0-100%
-            # Higher in the evening and early morning
-            base_level = 20
-            if time.hour >= 22 or time.hour <= 5:
-                base_level = 60
-            elif time.hour >= 14 and time.hour <= 16:  # After lunch dip
-                base_level = 50
-            
-            drowsiness = round(random.uniform(base_level - 15, base_level + 15), 1)
-            drowsiness = max(0, min(100, drowsiness))  # Clamp between 0-100
-            
-            data.append({
-                'timestamp': time.strftime('%H:%M'),
-                'drowsiness_level': drowsiness,
-                'is_drowsy': drowsiness >= 60
-            })
+        # Drowsiness is a value between 0 and 1
+        # Higher values indicate more drowsiness
+        drowsiness = random.uniform(0, 0.75)
         
-        return data
+        # Add new data point
+        self.drowsiness_history.append({
+            'timestamp': current_time,
+            'value': drowsiness
+        })
+        
+        # Convert to list for JSON serialization
+        return list(self.drowsiness_history)
     
     def generate_screen_time(self):
-        # Generate simulated screen time for the last 7 days
-        data = []
-        now = datetime.now()
+        """Update and return cumulative screen time"""
+        now = datetime.datetime.now()
+        elapsed = (now - self.last_update).total_seconds() / 60  # in minutes
+        self.last_update = now
         
-        for i in range(7):
-            day = now - timedelta(days=6-i)
-            # Generate screen time between 2-8 hours
-            screen_hours = round(random.uniform(2, 8), 1)
-            
-            # Weekend screen time tends to be different
-            if day.weekday() >= 5:  # Weekend
-                screen_hours = round(random.uniform(3, 10), 1)
-            
-            data.append({
-                'day': day.strftime('%a'),
-                'screen_time_hours': screen_hours,
-                'is_excessive': screen_hours > 6
-            })
+        # Update screen time (capped by the time elapsed)
+        self.screen_time += min(elapsed, 1)  # Cap at 1 minute per real minute max
         
-        return data
-    
-    def get_current_metrics(self):
-        # Get the most recent metrics
-        latest_blink = self.blink_data[-1]
-        latest_drowsiness = self.drowsiness_data[-1]
-        total_screen_time = sum(day['screen_time_hours'] for day in self.screen_time)
+        # Format for display
+        hours = int(self.screen_time // 60)
+        minutes = int(self.screen_time % 60)
         
         return {
-            'current_blink_rate': latest_blink['blink_rate'],
-            'is_healthy_blink': latest_blink['is_healthy'],
-            'current_drowsiness': latest_drowsiness['drowsiness_level'],
-            'is_drowsy': latest_drowsiness['is_drowsy'],
-            'avg_daily_screen_time': round(total_screen_time / 7, 1),
-            'total_weekly_screen_time': round(total_screen_time, 1)
+            'hours': hours,
+            'minutes': minutes,
+            'total_minutes': self.screen_time
+        }
+    
+    def get_current_metrics(self):
+        """Get the current eye health metrics"""
+        # Get latest data or defaults if empty
+        blink_rate = self.blink_history[-1]['value'] if self.blink_history else 0
+        drowsiness = self.drowsiness_history[-1]['value'] if self.drowsiness_history else 0
+        
+        screen_time = self.generate_screen_time()
+        
+        return {
+            'blink_rate': blink_rate,
+            'drowsiness': drowsiness, 
+            'screen_time': screen_time
         }
     
     def get_health_insights(self):
-        latest = self.get_current_metrics()
+        """Generate health insights based on metrics"""
+        metrics = self.get_current_metrics()
         
         insights = []
         
         # Blink rate insights
-        if latest['current_blink_rate'] < 12:
+        if metrics['blink_rate'] < 12:
             insights.append({
                 'type': 'warning',
-                'message': 'Your blink rate is very low. This may cause dry eyes and discomfort.'
+                'message': 'Your blink rate is below normal levels. Consider taking a break and doing eye exercises.'
             })
-        elif latest['current_blink_rate'] < 15:
+        elif metrics['blink_rate'] > 20:
             insights.append({
                 'type': 'info',
-                'message': 'Your blink rate is slightly below the healthy range. Try to blink more often.'
-            })
-        elif latest['current_blink_rate'] > 25:
-            insights.append({
-                'type': 'info',
-                'message': 'Your blink rate is unusually high. This may indicate eye irritation.'
+                'message': 'Your blink rate is good, indicating your eyes are well-hydrated.'
             })
         else:
             insights.append({
-                'type': 'success',
-                'message': 'Your blink rate is within the healthy range. Keep it up!'
+                'type': 'info',
+                'message': 'Your blink rate is within normal range.'
             })
-        
+            
         # Drowsiness insights
-        if latest['current_drowsiness'] >= 70:
-            insights.append({
-                'type': 'danger',
-                'message': 'High drowsiness detected! Take a break immediately.'
-            })
-        elif latest['current_drowsiness'] >= 50:
+        if metrics['drowsiness'] > 0.6:
             insights.append({
                 'type': 'warning',
-                'message': 'Moderate drowsiness detected. Consider taking a short break.'
+                'message': 'High drowsiness detected. Consider taking a break or getting some rest.'
             })
-        
+        elif metrics['drowsiness'] > 0.3:
+            insights.append({
+                'type': 'info',
+                'message': 'Moderate drowsiness detected. Consider short break to refresh your eyes.'
+            })
+            
         # Screen time insights
-        if latest['avg_daily_screen_time'] > 6:
+        if metrics['screen_time']['total_minutes'] > 120:
             insights.append({
                 'type': 'warning',
-                'message': f'Your daily screen time ({latest["avg_daily_screen_time"]} hours) is higher than recommended.'
+                'message': 'You have been using the screen for over 2 hours. Consider a 20-minute break.'
             })
-        
+        elif metrics['screen_time']['total_minutes'] > 60:
+            insights.append({
+                'type': 'info',
+                'message': 'You have been using the screen for over an hour. Consider a short break.'
+            })
+            
         return insights
 
-# Initialize simulated data
+# Create an instance of EyeHealthData
 eye_health_data = EyeHealthData()
 
+# Routes
 @app.route('/')
 def home():
-    metrics = eye_health_data.get_current_metrics()
+    current_metrics = eye_health_data.get_current_metrics()
     insights = eye_health_data.get_health_insights()
-    return render_template('home.html', metrics=metrics, insights=insights)
+    return render_template('home.html', metrics=current_metrics, insights=insights)
 
 @app.route('/live-tracking')
 def live_tracking():
@@ -165,88 +170,86 @@ def live_tracking():
 
 @app.route('/reports')
 def reports():
-    return render_template('reports.html', 
-                          blink_data=eye_health_data.blink_data,
-                          drowsiness_data=eye_health_data.drowsiness_data,
-                          screen_time=eye_health_data.screen_time)
+    return render_template('reports.html')
 
 @app.route('/settings')
 def settings():
     return render_template('settings.html')
 
+# API Routes for frontend data
 @app.route('/api/blink-data')
 def api_blink_data():
-    return jsonify(eye_health_data.blink_data)
+    data = eye_health_data.generate_blink_data()
+    return jsonify(data)
 
 @app.route('/api/drowsiness-data')
 def api_drowsiness_data():
-    return jsonify(eye_health_data.drowsiness_data)
+    data = eye_health_data.generate_drowsiness_data()
+    return jsonify(data)
 
 @app.route('/api/screen-time')
 def api_screen_time():
-    return jsonify(eye_health_data.screen_time)
+    data = eye_health_data.generate_screen_time()
+    return jsonify(data)
 
-# Serve OpenCV Haar cascade files
-@app.route('/haarcascade_frontalface_alt2.xml')
+# Routes to serve face and eye cascade files for OpenCV.js
+@app.route('/models/haarcascade_frontalface_alt2.xml')
 def serve_face_cascade():
-    return send_from_directory('static/models', 'haarcascade_frontalface_alt2.xml')
+    return send_file('static/models/haarcascade_frontalface_alt2.xml', mimetype='text/xml')
 
-@app.route('/haarcascade_eye.xml')
+@app.route('/models/haarcascade_eye.xml')
 def serve_eye_cascade():
-    return send_from_directory('static/models', 'haarcascade_eye.xml')
+    return send_file('static/models/haarcascade_eye.xml', mimetype='text/xml')
 
-# API routes for eye tracking
+# Toggle background processing
 @app.route('/api/toggle-background', methods=['POST'])
 def toggle_background():
-    global background_processing
-    data = request.json
-    if 'enabled' in data:
-        background_processing = data['enabled']
-        
-        if background_processing:
-            # Start background worker in a new thread
-            thread = threading.Thread(target=background_worker)
-            thread.daemon = True  # Thread will exit when main program exits
-            thread.start()
-            
-        return jsonify({
-            'status': 'success',
-            'background_processing': background_processing,
-            'message': 'Background processing ' + ('enabled' if background_processing else 'disabled')
-        })
+    global background_thread, background_thread_running
     
-    return jsonify({
-        'status': 'error',
-        'message': 'Missing "enabled" parameter'
-    }), 400
+    data = request.json
+    should_run = data.get('run', False)
+    
+    if should_run and (background_thread is None or not background_thread.is_alive()):
+        # Start background thread
+        background_thread_running = True
+        background_thread = threading.Thread(target=background_worker)
+        background_thread.daemon = True
+        background_thread.start()
+        return jsonify({'status': 'started'})
+    
+    elif not should_run and background_thread and background_thread.is_alive():
+        # Stop background thread
+        background_thread_running = False
+        # Let the thread exit naturally
+        # We don't join here to avoid blocking the response
+        return jsonify({'status': 'stopping'})
+    
+    # Already in the requested state
+    current_state = 'running' if (background_thread and background_thread.is_alive()) else 'stopped'
+    return jsonify({'status': current_state})
 
-@app.route('/api/notification', methods=['POST'])
+# Notification endpoint
+@app.route('/api/send-notification', methods=['POST'])
 def send_notification():
     data = request.json
-    if 'title' in data and 'message' in data:
-        # In a real implementation, this would send a notification to the user's OS
-        # For this demo, we'll just log it
-        print(f"NOTIFICATION: {data['title']} - {data['message']}")
-        return jsonify({'status': 'success'})
-    return jsonify({'status': 'error', 'message': 'Missing title or message'}), 400
+    print(f"Would send notification: {data}")
+    return jsonify({'status': 'sent'})
 
 # Background worker function
 def background_worker():
+    global background_thread_running
     print("Background eye tracking worker started")
     
-    while background_processing:
-        # In a real implementation, this would:
-        # 1. Access the webcam
-        # 2. Process frames to detect eyes
-        # 3. Analyze blink rate and drowsiness
-        # 4. Send notifications when needed
+    while background_thread_running:
+        # In a real application, this would process eye tracking data
+        # and update metrics
         
-        # For demo purposes, just simulate periodic checking
-        print("Background worker: checking eye health...")
+        # Check if any metrics require notification
+        metrics = eye_health_data.get_current_metrics()
         
-        # Simulate drowsiness detection at random intervals
-        if random.random() < 0.3:  # 30% chance each check
-            print("Background worker: drowsiness detected! Sending notification.")
+        # Example: Send notification if blink rate is too low or drowsiness is high
+        if metrics['blink_rate'] < 10:
+            print("Low blink rate detected! Would send notification.")
             # This would trigger a system notification in a real implementation
         
         # Sleep for a few seconds before next check
@@ -260,4 +263,8 @@ def eye_exercises():
     return render_template('eye_exercises.html')
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    # Use environment variables for port if available (for hosting platforms)
+    port = int(os.environ.get('PORT', 5000))
+    # Set debug to False in production
+    debug = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
+    app.run(host='0.0.0.0', port=port, debug=debug)
