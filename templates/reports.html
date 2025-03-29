@@ -1,0 +1,364 @@
+{% extends "layout.html" %}
+
+{% block title %}Eye Health Reports{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="mb-4">Eye Health Reports</h1>
+        <p class="lead">Track your eye health trends over time. View insights about your blink patterns, drowsiness levels, and screen time.</p>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-graph-up"></i> Metrics Overview</span>
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-sm btn-outline-primary active" data-time-period="day">Day</button>
+                    <button type="button" class="btn btn-sm btn-outline-primary" data-time-period="week">Week</button>
+                    <button type="button" class="btn btn-sm btn-outline-primary" data-time-period="month">Month</button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row text-center mb-4">
+                    <div class="col-md-4">
+                        <div class="metric-value healthy">{{ blink_data[-1].blink_rate }}</div>
+                        <div class="metric-label">Average Blink Rate</div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="metric-value {% if drowsiness_data[-1].drowsiness_level < 50 %}healthy{% elif drowsiness_data[-1].drowsiness_level < 70 %}warning{% else %}danger{% endif %}">
+                            {{ drowsiness_data[-1].drowsiness_level }}%
+                        </div>
+                        <div class="metric-label">Last Drowsiness Reading</div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="metric-value {% if screen_time[-1].screen_time_hours < 4 %}healthy{% elif screen_time[-1].screen_time_hours < 6 %}warning{% else %}danger{% endif %}">
+                            {{ screen_time[-1].screen_time_hours }} hrs
+                        </div>
+                        <div class="metric-label">Today's Screen Time</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-bar-chart"></i> Blink Rate Over Time
+            </div>
+            <div class="card-body">
+                <canvas id="blinkRateChart" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <i class="bi bi-eyeglasses"></i> Blink Pattern Analysis
+            </div>
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="me-auto">Low Blink Rate Episodes</div>
+                    <div class="badge bg-warning">3 today</div>
+                </div>
+                
+                <div class="d-flex align-items-center mb-3">
+                    <div class="me-auto">Average Blink Duration</div>
+                    <div class="badge bg-primary">204 ms</div>
+                </div>
+                
+                <div class="d-flex align-items-center mb-3">
+                    <div class="me-auto">Peak Blink Time</div>
+                    <div class="badge bg-primary">10:30 AM</div>
+                </div>
+                
+                <div class="d-flex align-items-center mb-3">
+                    <div class="me-auto">Risk of Digital Eye Strain</div>
+                    <div class="badge bg-warning">Moderate</div>
+                </div>
+                
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i> Your blink rate is healthy but drops significantly in the evening. Consider taking more breaks after 6 PM.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-exclamation-triangle"></i> Drowsiness Levels
+            </div>
+            <div class="card-body">
+                <canvas id="drowsinessChart" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-clock"></i> Weekly Screen Time
+            </div>
+            <div class="card-body">
+                <canvas id="screenTimeChart" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-lightning"></i> Eye Health Action Plan
+            </div>
+            <div class="card-body">
+                <h5>Based on your eye health data, we recommend:</h5>
+                <div class="row mt-3">
+                    <div class="col-md-4">
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <h5 class="card-title"><i class="bi bi-droplet"></i> Hydration</h5>
+                                <p class="card-text">Your low blink rate indicates possible dry eyes. Use eye drops and increase water intake.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <h5 class="card-title"><i class="bi bi-alarm"></i> Break Schedule</h5>
+                                <p class="card-text">Set a 20-20-20 rule reminder: every 20 minutes, look 20 feet away for 20 seconds.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <h5 class="card-title"><i class="bi bi-brightness-high"></i> Lighting</h5>
+                                <p class="card-text">Improve your workspace lighting to reduce eye strain during evening hours.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-3">
+                    <button class="btn btn-outline-primary">
+                        <i class="bi bi-printer"></i> Print Report
+                    </button>
+                    <button class="btn btn-outline-primary">
+                        <i class="bi bi-share"></i> Share with Doctor
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Data from Flask
+        const blinkData = {{ blink_data|tojson }};
+        const drowsinessData = {{ drowsiness_data|tojson }};
+        const screenTimeData = {{ screen_time|tojson }};
+        
+        // Prepare data for charts
+        const blinkRateLabels = blinkData.slice(-12).map(item => item.timestamp);
+        const blinkRateValues = blinkData.slice(-12).map(item => item.blink_rate);
+        
+        const drowsinessLabels = drowsinessData.slice(-12).map(item => item.timestamp);
+        const drowsinessValues = drowsinessData.slice(-12).map(item => item.drowsiness_level);
+        
+        const screenTimeLabels = screenTimeData.map(item => item.day);
+        const screenTimeValues = screenTimeData.map(item => item.screen_time_hours);
+        
+        // Blink rate chart
+        const blinkRateChart = new Chart(
+            document.getElementById('blinkRateChart').getContext('2d'),
+            {
+                type: 'line',
+                data: {
+                    labels: blinkRateLabels,
+                    datasets: [{
+                        label: 'Blinks per Minute',
+                        data: blinkRateValues,
+                        borderColor: '#3a86ff',
+                        backgroundColor: 'rgba(58, 134, 255, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.3,
+                        fill: true
+                    }]
+                },
+                options: {
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            min: 0,
+                            max: 30,
+                            ticks: {
+                                stepSize: 5
+                            }
+                        }
+                    }
+                }
+            }
+        );
+        
+        // Drowsiness chart
+        const drowsinessChart = new Chart(
+            document.getElementById('drowsinessChart').getContext('2d'),
+            {
+                type: 'line',
+                data: {
+                    labels: drowsinessLabels,
+                    datasets: [{
+                        label: 'Drowsiness Level (%)',
+                        data: drowsinessValues,
+                        borderColor: '#ff006e',
+                        backgroundColor: 'rgba(255, 0, 110, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.3,
+                        fill: true
+                    }]
+                },
+                options: {
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            min: 0,
+                            max: 100,
+                            ticks: {
+                                stepSize: 20
+                            }
+                        }
+                    }
+                }
+            }
+        );
+        
+        // Screen time chart
+        const screenTimeChart = new Chart(
+            document.getElementById('screenTimeChart').getContext('2d'),
+            {
+                type: 'bar',
+                data: {
+                    labels: screenTimeLabels,
+                    datasets: [{
+                        label: 'Hours',
+                        data: screenTimeValues,
+                        backgroundColor: [
+                            'rgba(58, 134, 255, 0.6)',
+                            'rgba(58, 134, 255, 0.6)',
+                            'rgba(58, 134, 255, 0.6)',
+                            'rgba(58, 134, 255, 0.6)',
+                            'rgba(58, 134, 255, 0.6)',
+                            'rgba(249, 65, 68, 0.6)',
+                            'rgba(249, 65, 68, 0.6)'
+                        ],
+                        borderColor: [
+                            'rgb(58, 134, 255)',
+                            'rgb(58, 134, 255)',
+                            'rgb(58, 134, 255)',
+                            'rgb(58, 134, 255)',
+                            'rgb(58, 134, 255)',
+                            'rgb(249, 65, 68)',
+                            'rgb(249, 65, 68)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 12,
+                            ticks: {
+                                stepSize: 2
+                            }
+                        }
+                    }
+                }
+            }
+        );
+        
+        // Time period selector
+        document.querySelectorAll('[data-time-period]').forEach(button => {
+            button.addEventListener('click', function() {
+                // Remove active class from all buttons
+                document.querySelectorAll('[data-time-period]').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                
+                // Add active class to clicked button
+                this.classList.add('active');
+                
+                // Get selected time period
+                const period = this.getAttribute('data-time-period');
+                
+                // Update charts based on selected period
+                // In a real app, this would fetch new data for the selected period
+                if (period === 'day') {
+                    updateChartForDay();
+                } else if (period === 'week') {
+                    updateChartForWeek();
+                } else if (period === 'month') {
+                    updateChartForMonth();
+                }
+            });
+        });
+        
+        // Simulated functions to update charts for different time periods
+        function updateChartForDay() {
+            // Simulate updating blink rate chart for daily view
+            blinkRateChart.data.labels = blinkData.slice(-12).map(item => item.timestamp);
+            blinkRateChart.data.datasets[0].data = blinkData.slice(-12).map(item => item.blink_rate);
+            blinkRateChart.update();
+        }
+        
+        function updateChartForWeek() {
+            // Simulate updating blink rate chart for weekly view
+            const weeklyLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+            const weeklyData = [18.2, 17.5, 16.8, 15.3, 14.1, 16.7, 17.9];
+            
+            blinkRateChart.data.labels = weeklyLabels;
+            blinkRateChart.data.datasets[0].data = weeklyData;
+            blinkRateChart.update();
+        }
+        
+        function updateChartForMonth() {
+            // Simulate updating blink rate chart for monthly view
+            const monthlyLabels = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
+            const monthlyData = [17.2, 16.8, 15.9, 17.5];
+            
+            blinkRateChart.data.labels = monthlyLabels;
+            blinkRateChart.data.datasets[0].data = monthlyData;
+            blinkRateChart.update();
+        }
+    });
+</script>
+{% endblock %}

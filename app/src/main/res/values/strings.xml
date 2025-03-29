@@ -1,0 +1,74 @@
+<resources>
+    <string name="app_name">EyeCare AI</string>
+    
+    <!-- Navigation labels -->
+    <string name="nav_home">Home</string>
+    <string name="nav_live_tracking">Track</string>
+    <string name="nav_reports">Reports</string>
+    <string name="nav_settings">Settings</string>
+    
+    <!-- Home screen -->
+    <string name="home_welcome">Welcome to EyeCare AI</string>
+    <string name="home_start_tracking">Start Eye Tracking</string>
+    <string name="home_status">Eye Health Status</string>
+    <string name="home_blink_rate">Current Blink Rate</string>
+    <string name="home_blink_rate_unit">blinks/min</string>
+    <string name="home_screen_time">Screen Time Today</string>
+    <string name="home_last_break">Last Break</string>
+    
+    <!-- Live tracking screen -->
+    <string name="tracking_title">Live Eye Tracking</string>
+    <string name="tracking_blink_rate">Blink Rate</string>
+    <string name="tracking_drowsiness">Drowsiness Level</string>
+    <string name="tracking_stop">Stop Tracking</string>
+    <string name="tracking_status_active">Tracking Active</string>
+    <string name="tracking_status_paused">Tracking Paused</string>
+    <string name="tracking_permissions_needed">Camera permission required</string>
+    
+    <!-- Reports screen -->
+    <string name="reports_title">Eye Health Reports</string>
+    <string name="reports_daily">Daily</string>
+    <string name="reports_weekly">Weekly</string>
+    <string name="reports_monthly">Monthly</string>
+    <string name="reports_blink_rate">Average Blink Rate</string>
+    <string name="reports_healthy_range">Healthy range: 15-20 blinks/min</string>
+    <string name="reports_screen_time">Total Screen Time</string>
+    <string name="reports_drowsy_episodes">Drowsy Episodes</string>
+    <string name="reports_export">Export Data</string>
+    
+    <!-- Settings screen -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_alerts">Alert Settings</string>
+    <string name="settings_drowsiness_detection">Drowsiness Detection</string>
+    <string name="settings_blink_reminder">Blink Reminder</string>
+    <string name="settings_break_reminder">Break Reminder</string>
+    <string name="settings_break_interval">Break Interval (minutes)</string>
+    <string name="settings_accessibility">Accessibility Settings</string>
+    <string name="settings_gaze_control">Gaze Control</string>
+    <string name="settings_blink_control">Blink Control</string>
+    <string name="settings_about">About EyeCare AI</string>
+    <string name="settings_version">Version 1.0</string>
+    
+    <!-- Alerts and notifications -->
+    <string name="alert_drowsy">Drowsiness Detected!</string>
+    <string name="alert_drowsy_desc">You appear to be drowsy. Take a break or rest.</string>
+    <string name="alert_blink">Blink Reminder</string>
+    <string name="alert_blink_desc">Remember to blink more frequently to prevent eye strain.</string>
+    <string name="alert_break">Break Time</string>
+    <string name="alert_break_desc">Time to look away from the screen. Try the 20-20-20 rule.</string>
+    
+    <!-- Permissions -->
+    <string name="permission_camera_title">Camera Permission Required</string>
+    <string name="permission_camera_message">EyeCare AI needs camera access to track your eye movements and blinks.</string>
+    <string name="permission_storage_title">Storage Permission</string>
+    <string name="permission_storage_message">Storage access is needed to save your eye health data.</string>
+    <string name="permission_grant">Grant Permission</string>
+    <string name="permission_denied">Permission Denied</string>
+    
+    <!-- Error messages -->
+    <string name="error_camera_init">Failed to initialize camera</string>
+    <string name="error_face_detection">Face detection failed</string>
+    <string name="error_eye_detection">Eye detection failed</string>
+    <string name="error_data_load">Could not load eye health data</string>
+    <string name="error_generic">An error occurred</string>
+</resources>
