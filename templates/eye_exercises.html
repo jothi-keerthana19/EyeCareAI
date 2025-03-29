@@ -1,0 +1,986 @@
+{% extends "layout.html" %}
+
+{% block title %}Eye Exercises{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="mb-4">Eye Exercises</h1>
+        <p class="lead">Guided exercises to reduce eye strain and improve eye health. Regular practice can help prevent computer vision syndrome and dry eyes.</p>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-play-circle"></i> Exercise Guide</span>
+                <div>
+                    <span id="timerDisplay" class="badge bg-primary">00:00</span>
+                    <button id="startExerciseBtn" class="btn btn-sm btn-success ms-2">Start</button>
+                    <button id="pauseExerciseBtn" class="btn btn-sm btn-warning ms-2" disabled>Pause</button>
+                    <button id="resetExerciseBtn" class="btn btn-sm btn-danger ms-2" disabled>Reset</button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <h3 id="exerciseName">20-20-20 Exercise</h3>
+                    <p id="exerciseDescription">Every 20 minutes, look at something 20 feet away for 20 seconds.</p>
+                </div>
+                
+                <div id="exerciseVisual" class="position-relative" style="height: 300px; background-color: #f8f9fa; border-radius: 10px; overflow: hidden;">
+                    <!-- Animation container -->
+                    <div class="d-flex justify-content-center align-items-center h-100">
+                        <div id="animation" class="text-center">
+                            <i class="bi bi-eye" style="font-size: 5rem; color: #3a86ff;"></i>
+                            <div class="mt-3">Select an exercise and press Start</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="progress mt-4">
+                    <div id="exerciseProgress" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
+                </div>
+                
+                <div class="d-flex justify-content-between mt-3">
+                    <div id="currentStepText">Ready to start</div>
+                    <div><span id="currentStep">0</span>/<span id="totalSteps">0</span> steps</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-list-check"></i> Exercise Selection
+            </div>
+            <div class="card-body">
+                <div class="list-group" id="exerciseList">
+                    <button class="list-group-item list-group-item-action active" data-exercise="twenty-twenty-twenty">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">20-20-20 Rule</h5>
+                            <small>2 min</small>
+                        </div>
+                        <p class="mb-1">Look at something 20 feet away for 20 seconds, every 20 minutes.</p>
+                    </button>
+                    
+                    <button class="list-group-item list-group-item-action" data-exercise="focus-change">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">Focus Change</h5>
+                            <small>3 min</small>
+                        </div>
+                        <p class="mb-1">Alternating focus between near and far objects to exercise eye muscles.</p>
+                    </button>
+                    
+                    <button class="list-group-item list-group-item-action" data-exercise="eye-rolling">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">Eye Rolling</h5>
+                            <small>2 min</small>
+                        </div>
+                        <p class="mb-1">Roll your eyes in different directions to relieve muscle tension.</p>
+                    </button>
+                    
+                    <button class="list-group-item list-group-item-action" data-exercise="palming">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">Palming</h5>
+                            <small>5 min</small>
+                        </div>
+                        <p class="mb-1">Cover your closed eyes with warm palms to relax eye muscles.</p>
+                    </button>
+                    
+                    <button class="list-group-item list-group-item-action" data-exercise="figure-eight">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">Figure Eight</h5>
+                            <small>2 min</small>
+                        </div>
+                        <p class="mb-1">Trace an imaginary figure 8 with your eyes to improve tracking.</p>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <i class="bi bi-info-circle"></i> Exercise Benefits
+            </div>
+            <div class="card-body">
+                <h5>Why Eye Exercises Matter</h5>
+                <ul>
+                    <li>Reduces digital eye strain</li>
+                    <li>Improves focus flexibility</li>
+                    <li>Prevents dry eyes</li>
+                    <li>Strengthens eye muscles</li>
+                    <li>Reduces headaches</li>
+                    <li>Improves concentration</li>
+                </ul>
+                
+                <div class="alert alert-info mt-3">
+                    <i class="bi bi-lightbulb"></i> For best results, perform these exercises daily and take regular breaks from screen time.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-calendar-check"></i> Exercise Schedule
+            </div>
+            <div class="card-body">
+                <p>Set up an eye exercise routine to help maintain your eye health. Here's a recommended schedule:</p>
+                
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Time</th>
+                                <th>Exercise</th>
+                                <th>Duration</th>
+                                <th>Benefit</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Every 20 minutes</td>
+                                <td>20-20-20 Rule</td>
+                                <td>20 seconds</td>
+                                <td>Prevents eye strain</td>
+                            </tr>
+                            <tr>
+                                <td>Hourly</td>
+                                <td>Focus Change</td>
+                                <td>1 minute</td>
+                                <td>Exercises eye muscles</td>
+                            </tr>
+                            <tr>
+                                <td>Morning Break</td>
+                                <td>Eye Rolling</td>
+                                <td>2 minutes</td>
+                                <td>Relieves tension</td>
+                            </tr>
+                            <tr>
+                                <td>Lunch Break</td>
+                                <td>Palming</td>
+                                <td>5 minutes</td>
+                                <td>Deep relaxation</td>
+                            </tr>
+                            <tr>
+                                <td>Afternoon Break</td>
+                                <td>Figure Eight</td>
+                                <td>2 minutes</td>
+                                <td>Improves tracking</td>
+                            </tr>
+                            <tr>
+                                <td>End of Day</td>
+                                <td>Complete Routine</td>
+                                <td>10 minutes</td>
+                                <td>Comprehensive care</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="d-grid gap-2 d-md-flex justify-content-md-center mt-4">
+                    <button class="btn btn-outline-primary" id="scheduleRemindersBtn">
+                        <i class="bi bi-bell"></i> Schedule Reminders
+                    </button>
+                    <button class="btn btn-outline-primary">
+                        <i class="bi bi-download"></i> Download Schedule
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Exercise definitions
+    const exercises = {
+        'twenty-twenty-twenty': {
+            name: '20-20-20 Exercise',
+            description: 'Every 20 minutes, look at something 20 feet away for 20 seconds.',
+            duration: 120, // 2 minutes in seconds
+            steps: [
+                { text: 'Find an object about 20 feet away to focus on', duration: 10 },
+                { text: 'Look at the object and focus on its details', duration: 20 },
+                { text: 'Slowly blink 5 times while maintaining focus', duration: 10 },
+                { text: 'Close your eyes and rest for 5 seconds', duration: 5 },
+                { text: 'Open your eyes and focus on the object again', duration: 20 },
+                { text: 'Look at something nearby for 10 seconds', duration: 10 },
+                { text: 'Look back at the distant object for 20 seconds', duration: 20 },
+                { text: 'Blink rapidly for 5 seconds', duration: 5 },
+                { text: 'Close your eyes and rest', duration: 20 }
+            ],
+            animation: function(step) {
+                const animationDiv = document.getElementById('animation');
+                
+                if (step === 0) {
+                    // Initialize animation
+                    animationDiv.innerHTML = `
+                        <div class="position-relative">
+                            <i class="bi bi-person" style="font-size: 3rem; color: #3a86ff; position: absolute; left: 20px; top: 50px;"></i>
+                            <i class="bi bi-arrow-right" style="font-size: 2rem; color: #777; position: absolute; left: 80px; top: 55px;"></i>
+                            <i class="bi bi-tree" style="font-size: 3rem; color: #2a9d8f; position: absolute; right: 20px; top: 50px;"></i>
+                            <div style="margin-top: 120px;">Look at something 20 feet away</div>
+                        </div>
+                    `;
+                } else if (step === 1 || step === 4 || step === 6) {
+                    // Focus on distant object
+                    animationDiv.innerHTML = `
+                        <div class="position-relative">
+                            <i class="bi bi-person" style="font-size: 3rem; color: #3a86ff; position: absolute; left: 20px; top: 50px;"></i>
+                            <i class="bi bi-arrow-right" style="font-size: 2rem; color: #777; position: absolute; left: 80px; top: 55px;"></i>
+                            <i class="bi bi-tree" style="font-size: 3rem; color: #2a9d8f; position: absolute; right: 20px; top: 50px;"></i>
+                            <div class="position-absolute" style="right: 30px; top: 30px; width: 40px; height: 40px; border: 2px solid red; border-radius: 50%; animation: pulse 1s infinite;"></div>
+                            <div style="margin-top: 120px;">Focus on the distant object</div>
+                        </div>
+                    `;
+                } else if (step === 2) {
+                    // Blink while focusing
+                    animationDiv.innerHTML = `
+                        <div class="position-relative">
+                            <i class="bi bi-person" style="font-size: 3rem; color: #3a86ff; position: absolute; left: 20px; top: 50px;"></i>
+                            <i class="bi bi-arrow-right" style="font-size: 2rem; color: #777; position: absolute; left: 80px; top: 55px;"></i>
+                            <i class="bi bi-tree" style="font-size: 3rem; color: #2a9d8f; position: absolute; right: 20px; top: 50px;"></i>
+                            <div style="margin-top: 120px;">Blink slowly 5 times</div>
+                        </div>
+                    `;
+                } else if (step === 3 || step === 8) {
+                    // Close eyes and rest
+                    animationDiv.innerHTML = `
+                        <div class="position-relative">
+                            <i class="bi bi-person" style="font-size: 3rem; color: #3a86ff; position: absolute; left: 20px; top: 50px;"></i>
+                            <div style="position: absolute; left: 25px; top: 55px; width: 30px; height: 8px; background-color: #3a86ff; border-radius: 5px;"></div>
+                            <div style="margin-top: 120px;">Close your eyes and rest</div>
+                        </div>
+                    `;
+                } else if (step === 5) {
+                    // Look at something nearby
+                    animationDiv.innerHTML = `
+                        <div class="position-relative">
+                            <i class="bi bi-person" style="font-size: 3rem; color: #3a86ff; position: absolute; left: 20px; top: 50px;"></i>
+                            <i class="bi bi-arrow-right" style="font-size: 2rem; color: #777; position: absolute; left: 80px; top: 55px;"></i>
+                            <i class="bi bi-book" style="font-size: 2rem; color: #e76f51; position: absolute; left: 120px; top: 55px;"></i>
+                            <div class="position-absolute" style="left: 125px; top: 45px; width: 30px; height: 30px; border: 2px solid red; border-radius: 50%; animation: pulse 1s infinite;"></div>
+                            <div style="margin-top: 120px;">Look at something nearby</div>
+                        </div>
+                    `;
+                } else if (step === 7) {
+                    // Blink rapidly
+                    animationDiv.innerHTML = `
+                        <div class="position-relative">
+                            <i class="bi bi-person" style="font-size: 3rem; color: #3a86ff; position: absolute; left: 20px; top: 50px;"></i>
+                            <div style="position: absolute; left: 25px; top: 55px; width: 30px; height: 8px; background-color: #3a86ff; border-radius: 5px; animation: blink 0.5s infinite;"></div>
+                            <div style="margin-top: 120px;">Blink rapidly</div>
+                        </div>
+                    `;
+                }
+            }
+        },
+        'focus-change': {
+            name: 'Focus Change Exercise',
+            description: 'Alternating focus between near and far objects to exercise eye muscles.',
+            duration: 180, // 3 minutes in seconds
+            steps: [
+                { text: 'Hold your thumb about 10 inches from your face', duration: 10 },
+                { text: 'Focus on your thumb for 10 seconds', duration: 10 },
+                { text: 'Look at something in the distance for 10 seconds', duration: 10 },
+                { text: 'Return focus to your thumb for 10 seconds', duration: 10 },
+                { text: 'Look at the distant object again for 10 seconds', duration: 10 },
+                { text: 'Repeat this cycle 5 more times', duration: 100 },
+                { text: 'Close your eyes and rest for 30 seconds', duration: 30 }
+            ],
+            animation: function(step) {
+                const animationDiv = document.getElementById('animation');
+                
+                if (step === 0) {
+                    animationDiv.innerHTML = `
+                        <div class="position-relative">
+                            <i class="bi bi-person" style="font-size: 3rem; color: #3a86ff; position: absolute; left: 50px; top: 50px;"></i>
+                            <i class="bi bi-hand-thumbs-up" style="font-size: 2rem; color: #e76f51; position: absolute; left: 120px; top: 55px;"></i>
+                            <div style="margin-top: 120px;">Hold your thumb about 10 inches from your face</div>
+                        </div>
+                    `;
+                } else if (step === 1 || step === 3) {
+                    // Focus on thumb
+                    animationDiv.innerHTML = `
+                        <div class="position-relative">
+                            <i class="bi bi-person" style="font-size: 3rem; color: #3a86ff; position: absolute; left: 50px; top: 50px;"></i>
+                            <i class="bi bi-hand-thumbs-up" style="font-size: 2rem; color: #e76f51; position: absolute; left: 120px; top: 55px;"></i>
+                            <div class="position-absolute" style="left: 125px; top: 45px; width: 30px; height: 30px; border: 2px solid red; border-radius: 50%; animation: pulse 1s infinite;"></div>
+                            <div style="margin-top: 120px;">Focus on your thumb</div>
+                        </div>
+                    `;
+                } else if (step === 2 || step === 4) {
+                    // Focus on distant object
+                    animationDiv.innerHTML = `
+                        <div class="position-relative">
+                            <i class="bi bi-person" style="font-size: 3rem; color: #3a86ff; position: absolute; left: 50px; top: 50px;"></i>
+                            <i class="bi bi-hand-thumbs-up" style="font-size: 2rem; color: #777; position: absolute; left: 120px; top: 55px;"></i>
+                            <i class="bi bi-tree" style="font-size: 3rem; color: #2a9d8f; position: absolute; right: 50px; top: 50px;"></i>
+                            <div class="position-absolute" style="right: 60px; top: 40px; width: 40px; height: 40px; border: 2px solid red; border-radius: 50%; animation: pulse 1s infinite;"></div>
+                            <div style="margin-top: 120px;">Look at something in the distance</div>
+                        </div>
+                    `;
+                } else if (step === 5) {
+                    // Repeat cycle animation
+                    animationDiv.innerHTML = `
+                        <div class="position-relative">
+                            <i class="bi bi-person" style="font-size: 3rem; color: #3a86ff; position: absolute; left: 50px; top: 50px;"></i>
+                            <i class="bi bi-hand-thumbs-up" style="font-size: 2rem; color: #e76f51; position: absolute; left: 120px; top: 55px;"></i>
+                            <i class="bi bi-tree" style="font-size: 3rem; color: #2a9d8f; position: absolute; right: 50px; top: 50px;"></i>
+                            <div class="position-absolute" style="left: 160px; top: 60px; font-size: 2rem; color: #777;">⟷</div>
+                            <div style="margin-top: 120px;">Alternate focus between near and far</div>
+                        </div>
+                    `;
+                } else if (step === 6) {
+                    // Rest
+                    animationDiv.innerHTML = `
+                        <div class="position-relative">
+                            <i class="bi bi-person" style="font-size: 3rem; color: #3a86ff; position: absolute; left: 50px; top: 50px;"></i>
+                            <div style="position: absolute; left: 55px; top: 55px; width: 30px; height: 8px; background-color: #3a86ff; border-radius: 5px;"></div>
+                            <div style="margin-top: 120px;">Close your eyes and rest</div>
+                        </div>
+                    `;
+                }
+            }
+        },
+        'eye-rolling': {
+            name: 'Eye Rolling Exercise',
+            description: 'Roll your eyes in different directions to relieve muscle tension.',
+            duration: 120, // 2 minutes in seconds
+            steps: [
+                { text: 'Sit comfortably and relax your face muscles', duration: 10 },
+                { text: 'Look up as far as comfortable, hold for 5 seconds', duration: 5 },
+                { text: 'Look down as far as comfortable, hold for 5 seconds', duration: 5 },
+                { text: 'Look to the left, hold for 5 seconds', duration: 5 },
+                { text: 'Look to the right, hold for 5 seconds', duration: 5 },
+                { text: 'Roll eyes clockwise in a complete circle, 5 times slowly', duration: 30 },
+                { text: 'Roll eyes counter-clockwise in a complete circle, 5 times slowly', duration: 30 },
+                { text: 'Blink rapidly for 10 seconds to lubricate eyes', duration: 10 },
+                { text: 'Close eyes and rest for remaining time', duration: 20 }
+            ],
+            animation: function(step) {
+                const animationDiv = document.getElementById('animation');
+                
+                if (step === 0) {
+                    animationDiv.innerHTML = `
+                        <div>
+                            <i class="bi bi-emoji-smile" style="font-size: 5rem; color: #3a86ff;"></i>
+                            <div class="mt-3">Sit comfortably and relax your face muscles</div>
+                        </div>
+                    `;
+                } else if (step === 1) {
+                    // Look up
+                    animationDiv.innerHTML = `
+                        <div>
+                            <svg width="100" height="100" viewBox="0 0 100 100">
+                                <circle cx="50" cy="50" r="40" fill="white" stroke="#3a86ff" stroke-width="2" />
+                                <circle cx="50" cy="25" r="10" fill="#3a86ff" />
+                            </svg>
+                            <div class="mt-3">Look up</div>
+                        </div>
+                    `;
+                } else if (step === 2) {
+                    // Look down
+                    animationDiv.innerHTML = `
+                        <div>
+                            <svg width="100" height="100" viewBox="0 0 100 100">
+                                <circle cx="50" cy="50" r="40" fill="white" stroke="#3a86ff" stroke-width="2" />
+                                <circle cx="50" cy="75" r="10" fill="#3a86ff" />
+                            </svg>
+                            <div class="mt-3">Look down</div>
+                        </div>
+                    `;
+                } else if (step === 3) {
+                    // Look left
+                    animationDiv.innerHTML = `
+                        <div>
+                            <svg width="100" height="100" viewBox="0 0 100 100">
+                                <circle cx="50" cy="50" r="40" fill="white" stroke="#3a86ff" stroke-width="2" />
+                                <circle cx="25" cy="50" r="10" fill="#3a86ff" />
+                            </svg>
+                            <div class="mt-3">Look left</div>
+                        </div>
+                    `;
+                } else if (step === 4) {
+                    // Look right
+                    animationDiv.innerHTML = `
+                        <div>
+                            <svg width="100" height="100" viewBox="0 0 100 100">
+                                <circle cx="50" cy="50" r="40" fill="white" stroke="#3a86ff" stroke-width="2" />
+                                <circle cx="75" cy="50" r="10" fill="#3a86ff" />
+                            </svg>
+                            <div class="mt-3">Look right</div>
+                        </div>
+                    `;
+                } else if (step === 5) {
+                    // Roll clockwise
+                    animationDiv.innerHTML = `
+                        <div>
+                            <svg width="100" height="100" viewBox="0 0 100 100">
+                                <circle cx="50" cy="50" r="40" fill="white" stroke="#3a86ff" stroke-width="2" />
+                                <circle cx="50" cy="50" r="10" fill="#3a86ff">
+                                    <animateMotion 
+                                        path="M 0 -25 A 25 25 0 1 1 0 25 A 25 25 0 1 1 0 -25" 
+                                        dur="6s" 
+                                        repeatCount="5" />
+                                </circle>
+                                <path d="M 70 30 A 25 25 0 1 1 30 70" stroke="#aaa" stroke-width="2" fill="none" stroke-dasharray="5,5" />
+                                <path d="M 30 70 A 25 25 0 1 1 70 30" stroke="#aaa" stroke-width="2" fill="none" />
+                            </svg>
+                            <div class="mt-3">Roll eyes clockwise</div>
+                        </div>
+                    `;
+                } else if (step === 6) {
+                    // Roll counter-clockwise
+                    animationDiv.innerHTML = `
+                        <div>
+                            <svg width="100" height="100" viewBox="0 0 100 100">
+                                <circle cx="50" cy="50" r="40" fill="white" stroke="#3a86ff" stroke-width="2" />
+                                <circle cx="50" cy="50" r="10" fill="#3a86ff">
+                                    <animateMotion 
+                                        path="M 0 -25 A 25 25 0 1 0 0 25 A 25 25 0 1 0 0 -25" 
+                                        dur="6s" 
+                                        repeatCount="5" />
+                                </circle>
+                                <path d="M 30 30 A 25 25 0 1 0 70 70" stroke="#aaa" stroke-width="2" fill="none" stroke-dasharray="5,5" />
+                                <path d="M 70 70 A 25 25 0 1 0 30 30" stroke="#aaa" stroke-width="2" fill="none" />
+                            </svg>
+                            <div class="mt-3">Roll eyes counter-clockwise</div>
+                        </div>
+                    `;
+                } else if (step === 7) {
+                    // Blink rapidly
+                    animationDiv.innerHTML = `
+                        <div>
+                            <svg width="100" height="100" viewBox="0 0 100 100">
+                                <circle cx="50" cy="50" r="40" fill="white" stroke="#3a86ff" stroke-width="2" />
+                                <ellipse cx="50" cy="50" rx="15" ry="15" fill="#3a86ff">
+                                    <animate attributeName="ry" values="15;1;15" dur="0.5s" repeatCount="20" />
+                                </ellipse>
+                            </svg>
+                            <div class="mt-3">Blink rapidly</div>
+                        </div>
+                    `;
+                } else if (step === 8) {
+                    // Rest
+                    animationDiv.innerHTML = `
+                        <div>
+                            <svg width="100" height="100" viewBox="0 0 100 100">
+                                <circle cx="50" cy="50" r="40" fill="white" stroke="#3a86ff" stroke-width="2" />
+                                <ellipse cx="50" cy="50" rx="15" ry="1" fill="#3a86ff" />
+                            </svg>
+                            <div class="mt-3">Close eyes and rest</div>
+                        </div>
+                    `;
+                }
+            }
+        },
+        'palming': {
+            name: 'Palming Exercise',
+            description: 'Cover your closed eyes with warm palms to relax eye muscles.',
+            duration: 300, // 5 minutes in seconds
+            steps: [
+                { text: 'Rub your palms together to warm them', duration: 15 },
+                { text: 'Close your eyes gently', duration: 5 },
+                { text: 'Place your warm palms over your closed eyes, without applying pressure', duration: 20 },
+                { text: 'Relax and breathe deeply, keeping your eyes covered', duration: 120 },
+                { text: 'Visualize a peaceful scene or complete darkness', duration: 60 },
+                { text: 'Slowly remove your hands but keep eyes closed', duration: 10 },
+                { text: 'Gradually open your eyes', duration: 10 },
+                { text: 'Blink several times and readjust to the light', duration: 20 },
+                { text: 'Notice how refreshed your eyes feel', duration: 40 }
+            ],
+            animation: function(step) {
+                const animationDiv = document.getElementById('animation');
+                
+                if (step === 0) {
+                    // Rub palms
+                    animationDiv.innerHTML = `
+                        <div>
+                            <svg width="120" height="120" viewBox="0 0 120 120">
+                                <g transform="translate(60,60)">
+                                    <rect x="-25" y="-40" width="20" height="35" rx="5" fill="#e76f51" transform="rotate(-10)">
+                                        <animateTransform attributeName="transform" type="rotate" values="-10;10;-10" dur="1s" repeatCount="indefinite" />
+                                    </rect>
+                                    <rect x="5" y="-40" width="20" height="35" rx="5" fill="#e76f51" transform="rotate(10)">
+                                        <animateTransform attributeName="transform" type="rotate" values="10;-10;10" dur="1s" repeatCount="indefinite" />
+                                    </rect>
+                                </g>
+                            </svg>
+                            <div class="mt-3">Rub your palms together to warm them</div>
+                        </div>
+                    `;
+                } else if (step === 1) {
+                    // Close eyes
+                    animationDiv.innerHTML = `
+                        <div>
+                            <svg width="120" height="120" viewBox="0 0 120 120">
+                                <circle cx="60" cy="60" r="40" fill="white" stroke="#3a86ff" stroke-width="2" />
+                                <ellipse cx="60" cy="60" rx="15" ry="1" fill="#3a86ff">
+                                    <animate attributeName="ry" values="15;1" dur="1s" fill="freeze" />
+                                </ellipse>
+                            </svg>
+                            <div class="mt-3">Close your eyes gently</div>
+                        </div>
+                    `;
+                } else if (step >= 2 && step <= 5) {
+                    // Cover eyes with palms
+                    animationDiv.innerHTML = `
+                        <div>
+                            <svg width="120" height="120" viewBox="0 0 120 120">
+                                <circle cx="60" cy="60" r="40" fill="#111" stroke="#3a86ff" stroke-width="2" />
+                                <path d="M 30 50 C 30 35, 90 35, 90 50" fill="#e76f51" />
+                                <ellipse cx="60" cy="60" rx="15" ry="1" fill="#111" />
+                            </svg>
+                            <div class="mt-3">${step === 2 ? 'Cover eyes with palms' : 
+                                            step === 3 ? 'Relax and breathe deeply' : 
+                                            step === 4 ? 'Visualize a peaceful scene' : 
+                                            'Slowly remove hands'}</div>
+                        </div>
+                    `;
+                } else if (step === 6) {
+                    // Gradually open eyes
+                    animationDiv.innerHTML = `
+                        <div>
+                            <svg width="120" height="120" viewBox="0 0 120 120">
+                                <circle cx="60" cy="60" r="40" fill="white" stroke="#3a86ff" stroke-width="2" />
+                                <ellipse cx="60" cy="60" rx="15" ry="1" fill="#3a86ff">
+                                    <animate attributeName="ry" values="1;8" dur="2s" fill="freeze" />
+                                </ellipse>
+                            </svg>
+                            <div class="mt-3">Gradually open your eyes</div>
+                        </div>
+                    `;
+                } else if (step === 7) {
+                    // Blink
+                    animationDiv.innerHTML = `
+                        <div>
+                            <svg width="120" height="120" viewBox="0 0 120 120">
+                                <circle cx="60" cy="60" r="40" fill="white" stroke="#3a86ff" stroke-width="2" />
+                                <ellipse cx="60" cy="60" rx="15" ry="15" fill="#3a86ff">
+                                    <animate attributeName="ry" values="15;1;15" dur="1s" repeatCount="5" />
+                                </ellipse>
+                            </svg>
+                            <div class="mt-3">Blink several times</div>
+                        </div>
+                    `;
+                } else if (step === 8) {
+                    // Feel refreshed
+                    animationDiv.innerHTML = `
+                        <div>
+                            <i class="bi bi-emoji-smile" style="font-size: 5rem; color: #3a86ff;"></i>
+                            <div class="mt-3">Notice how refreshed your eyes feel</div>
+                        </div>
+                    `;
+                }
+            }
+        },
+        'figure-eight': {
+            name: 'Figure Eight Exercise',
+            description: 'Trace an imaginary figure 8 with your eyes to improve tracking.',
+            duration: 120, // 2 minutes in seconds
+            steps: [
+                { text: 'Sit comfortably and focus straight ahead', duration: 10 },
+                { text: 'Imagine a large figure 8 in front of you', duration: 10 },
+                { text: 'Trace the figure 8 with your eyes, moving clockwise', duration: 30 },
+                { text: 'Rest for 5 seconds', duration: 5 },
+                { text: 'Trace the figure 8 counter-clockwise', duration: 30 },
+                { text: 'Rest for 5 seconds', duration: 5 },
+                { text: 'Imagine the figure 8 turned vertically', duration: 5 },
+                { text: 'Trace the vertical figure 8 with your eyes', duration: 20 },
+                { text: 'Close your eyes and rest', duration: 5 }
+            ],
+            animation: function(step) {
+                const animationDiv = document.getElementById('animation');
+                
+                if (step === 0) {
+                    // Sit comfortably
+                    animationDiv.innerHTML = `
+                        <div>
+                            <i class="bi bi-person-standing" style="font-size: 5rem; color: #3a86ff;"></i>
+                            <div class="mt-3">Sit comfortably and focus straight ahead</div>
+                        </div>
+                    `;
+                } else if (step === 1) {
+                    // Imagine figure 8
+                    animationDiv.innerHTML = `
+                        <div>
+                            <svg width="150" height="100" viewBox="0 0 150 100">
+                                <path d="M 25 50 C 25 25, 75 0, 75 25 C 75 50, 125 75, 125 50 C 125 25, 75 0, 75 25 C 75 50, 25 75, 25 50" 
+                                      stroke="#3a86ff" stroke-width="3" fill="none" stroke-dasharray="5,5" />
+                            </svg>
+                            <div class="mt-3">Imagine a large figure 8 in front of you</div>
+                        </div>
+                    `;
+                } else if (step === 2) {
+                    // Trace clockwise
+                    animationDiv.innerHTML = `
+                        <div>
+                            <svg width="150" height="100" viewBox="0 0 150 100">
+                                <path d="M 25 50 C 25 25, 75 0, 75 25 C 75 50, 125 75, 125 50 C 125 25, 75 0, 75 25 C 75 50, 25 75, 25 50" 
+                                      stroke="#3a86ff" stroke-width="3" fill="none" />
+                                <circle r="5" fill="#e76f51">
+                                    <animateMotion 
+                                        path="M 25 50 C 25 25, 75 0, 75 25 C 75 50, 125 75, 125 50 C 125 25, 75 0, 75 25 C 75 50, 25 75, 25 50" 
+                                        dur="5s" 
+                                        repeatCount="6" />
+                                </circle>
+                            </svg>
+                            <div class="mt-3">Trace clockwise</div>
+                        </div>
+                    `;
+                } else if (step === 3) {
+                    // Rest
+                    animationDiv.innerHTML = `
+                        <div>
+                            <svg width="150" height="100" viewBox="0 0 150 100">
+                                <path d="M 25 50 C 25 25, 75 0, 75 25 C 75 50, 125 75, 125 50 C 125 25, 75 0, 75 25 C 75 50, 25 75, 25 50" 
+                                      stroke="#aaa" stroke-width="3" fill="none" stroke-dasharray="5,5" />
+                            </svg>
+                            <div class="mt-3">Rest for a moment</div>
+                        </div>
+                    `;
+                } else if (step === 4) {
+                    // Trace counter-clockwise
+                    animationDiv.innerHTML = `
+                        <div>
+                            <svg width="150" height="100" viewBox="0 0 150 100">
+                                <path d="M 25 50 C 25 25, 75 0, 75 25 C 75 50, 125 75, 125 50 C 125 25, 75 0, 75 25 C 75 50, 25 75, 25 50" 
+                                      stroke="#3a86ff" stroke-width="3" fill="none" />
+                                <circle r="5" fill="#e76f51">
+                                    <animateMotion 
+                                        path="M 25 50 C 25 75, 75 100, 75 75 C 75 50, 125 25, 125 50 C 125 75, 75 100, 75 75 C 75 50, 25 25, 25 50" 
+                                        dur="5s" 
+                                        repeatCount="6" />
+                                </circle>
+                            </svg>
+                            <div class="mt-3">Trace counter-clockwise</div>
+                        </div>
+                    `;
+                } else if (step === 5) {
+                    // Rest
+                    animationDiv.innerHTML = `
+                        <div>
+                            <svg width="150" height="100" viewBox="0 0 150 100">
+                                <path d="M 25 50 C 25 25, 75 0, 75 25 C 75 50, 125 75, 125 50 C 125 25, 75 0, 75 25 C 75 50, 25 75, 25 50" 
+                                      stroke="#aaa" stroke-width="3" fill="none" stroke-dasharray="5,5" />
+                            </svg>
+                            <div class="mt-3">Rest for a moment</div>
+                        </div>
+                    `;
+                } else if (step === 6) {
+                    // Vertical figure 8
+                    animationDiv.innerHTML = `
+                        <div>
+                            <svg width="100" height="150" viewBox="0 0 100 150">
+                                <path d="M 50 25 C 25 25, 0 75, 25 75 C 50 75, 75 125, 50 125 C 25 125, 0 75, 25 75 C 50 75, 75 25, 50 25" 
+                                      stroke="#3a86ff" stroke-width="3" fill="none" stroke-dasharray="5,5" />
+                            </svg>
+                            <div class="mt-3">Imagine the figure 8 turned vertically</div>
+                        </div>
+                    `;
+                } else if (step === 7) {
+                    // Trace vertical figure 8
+                    animationDiv.innerHTML = `
+                        <div>
+                            <svg width="100" height="150" viewBox="0 0 100 150">
+                                <path d="M 50 25 C 25 25, 0 75, 25 75 C 50 75, 75 125, 50 125 C 25 125, 0 75, 25 75 C 50 75, 75 25, 50 25" 
+                                      stroke="#3a86ff" stroke-width="3" fill="none" />
+                                <circle r="5" fill="#e76f51">
+                                    <animateMotion 
+                                        path="M 50 25 C 25 25, 0 75, 25 75 C 50 75, 75 125, 50 125 C 25 125, 0 75, 25 75 C 50 75, 75 25, 50 25" 
+                                        dur="4s" 
+                                        repeatCount="5" />
+                                </circle>
+                            </svg>
+                            <div class="mt-3">Trace the vertical figure 8</div>
+                        </div>
+                    `;
+                } else if (step === 8) {
+                    // Rest
+                    animationDiv.innerHTML = `
+                        <div>
+                            <svg width="100" height="100" viewBox="0 0 100 100">
+                                <circle cx="50" cy="50" r="40" fill="white" stroke="#3a86ff" stroke-width="2" />
+                                <ellipse cx="50" cy="50" rx="15" ry="1" fill="#3a86ff" />
+                            </svg>
+                            <div class="mt-3">Close your eyes and rest</div>
+                        </div>
+                    `;
+                }
+            }
+        }
+    };
+    
+    // Exercise state
+    let currentExercise = null;
+    let currentStep = 0;
+    let timer = null;
+    let stepTimer = null;
+    let totalTime = 0;
+    let elapsed = 0;
+    
+    // Elements
+    const exerciseName = document.getElementById('exerciseName');
+    const exerciseDescription = document.getElementById('exerciseDescription');
+    const currentStepText = document.getElementById('currentStepText');
+    const currentStepDisplay = document.getElementById('currentStep');
+    const totalStepsDisplay = document.getElementById('totalSteps');
+    const timerDisplay = document.getElementById('timerDisplay');
+    const progressBar = document.getElementById('exerciseProgress');
+    const animation = document.getElementById('animation');
+    
+    // Buttons
+    const startBtn = document.getElementById('startExerciseBtn');
+    const pauseBtn = document.getElementById('pauseExerciseBtn');
+    const resetBtn = document.getElementById('resetExerciseBtn');
+    
+    // Handle exercise selection
+    document.querySelectorAll('#exerciseList button').forEach(button => {
+        button.addEventListener('click', function() {
+            // Remove active class from all buttons
+            document.querySelectorAll('#exerciseList button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Add active class to clicked button
+            this.classList.add('active');
+            
+            // Get selected exercise
+            const exerciseId = this.getAttribute('data-exercise');
+            currentExercise = exercises[exerciseId];
+            
+            // Update exercise info
+            exerciseName.textContent = currentExercise.name;
+            exerciseDescription.textContent = currentExercise.description;
+            
+            // Update step count
+            totalStepsDisplay.textContent = currentExercise.steps.length;
+            currentStepDisplay.textContent = '0';
+            currentStepText.textContent = 'Ready to start';
+            
+            // Reset timer and progress
+            resetExercise();
+            
+            // Show start button
+            startBtn.disabled = false;
+            pauseBtn.disabled = true;
+            resetBtn.disabled = true;
+            
+            // Initialize animation
+            animation.innerHTML = `
+                <i class="bi bi-eye" style="font-size: 5rem; color: #3a86ff;"></i>
+                <div class="mt-3">Select an exercise and press Start</div>
+            `;
+        });
+    });
+    
+    // Format time (seconds) to MM:SS
+    function formatTime(seconds) {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+    
+    // Start exercise
+    startBtn.addEventListener('click', function() {
+        if (!currentExercise) return;
+        
+        if (timer) {
+            // Resume from pause
+            clearInterval(timer);
+        } else {
+            // Start new exercise
+            totalTime = currentExercise.duration;
+            elapsed = 0;
+            currentStep = 0;
+            
+            // Update UI for first step
+            goToStep(0);
+        }
+        
+        // Start timer
+        timer = setInterval(function() {
+            elapsed++;
+            
+            // Update timer display
+            timerDisplay.textContent = formatTime(elapsed);
+            
+            // Update progress bar
+            const progress = (elapsed / totalTime) * 100;
+            progressBar.style.width = `${progress}%`;
+            
+            if (elapsed >= totalTime) {
+                // Exercise complete
+                clearInterval(timer);
+                timer = null;
+                
+                // Update UI
+                currentStepText.textContent = 'Exercise complete!';
+                
+                // Reset buttons
+                startBtn.disabled = true;
+                pauseBtn.disabled = true;
+                resetBtn.disabled = false;
+                
+                // Show completion message
+                const alertsContainer = document.createElement('div');
+                alertsContainer.className = 'alert alert-success text-center';
+                alertsContainer.innerHTML = `
+                    <i class="bi bi-check-circle-fill me-2"></i>
+                    Exercise complete! Good job taking care of your eyes.
+                `;
+                
+                // Insert alert before the animation
+                const exerciseVisual = document.getElementById('exerciseVisual');
+                exerciseVisual.parentNode.insertBefore(alertsContainer, exerciseVisual);
+                
+                // Remove after 5 seconds
+                setTimeout(() => {
+                    alertsContainer.remove();
+                }, 5000);
+            }
+        }, 1000);
+        
+        // Update button states
+        startBtn.disabled = true;
+        pauseBtn.disabled = false;
+        resetBtn.disabled = false;
+    });
+    
+    // Pause exercise
+    pauseBtn.addEventListener('click', function() {
+        if (timer) {
+            clearInterval(timer);
+            timer = null;
+            
+            if (stepTimer) {
+                clearTimeout(stepTimer);
+                stepTimer = null;
+            }
+            
+            // Update button states
+            startBtn.disabled = false;
+            pauseBtn.disabled = true;
+        }
+    });
+    
+    // Reset exercise
+    resetBtn.addEventListener('click', function() {
+        resetExercise();
+    });
+    
+    function resetExercise() {
+        // Clear timers
+        if (timer) {
+            clearInterval(timer);
+            timer = null;
+        }
+        
+        if (stepTimer) {
+            clearTimeout(stepTimer);
+            stepTimer = null;
+        }
+        
+        // Reset state
+        elapsed = 0;
+        currentStep = 0;
+        
+        // Update UI
+        timerDisplay.textContent = '00:00';
+        progressBar.style.width = '0%';
+        currentStepDisplay.textContent = '0';
+        currentStepText.textContent = 'Ready to start';
+        
+        // Reset animation
+        animation.innerHTML = `
+            <i class="bi bi-eye" style="font-size: 5rem; color: #3a86ff;"></i>
+            <div class="mt-3">Select an exercise and press Start</div>
+        `;
+        
+        // Update button states
+        startBtn.disabled = false;
+        pauseBtn.disabled = true;
+        resetBtn.disabled = true;
+        
+        // Remove any alerts
+        const alertsContainer = document.querySelector('.alert');
+        if (alertsContainer) {
+            alertsContainer.remove();
+        }
+    }
+    
+    // Go to specified step
+    function goToStep(step) {
+        if (!currentExercise || step >= currentExercise.steps.length) return;
+        
+        // Update step display
+        currentStep = step;
+        currentStepDisplay.textContent = step + 1;
+        currentStepText.textContent = currentExercise.steps[step].text;
+        
+        // Update animation
+        if (currentExercise.animation) {
+            currentExercise.animation(step);
+        }
+        
+        // Schedule next step if not the last one
+        if (step < currentExercise.steps.length - 1 && timer) {
+            stepTimer = setTimeout(() => {
+                goToStep(step + 1);
+            }, currentExercise.steps[step].duration * 1000);
+        }
+    }
+    
+    // Schedule reminders button
+    document.getElementById('scheduleRemindersBtn').addEventListener('click', function() {
+        // In a real implementation, this would set up browser notifications
+        // For demo purposes, show an alert
+        alert('Eye exercise reminders have been scheduled! You will receive notifications to take eye breaks throughout your day.');
+    });
+    
+    // Initialize with 20-20-20 exercise selected
+    document.querySelector('[data-exercise="twenty-twenty-twenty"]').click();
+    
+    // Add keydown event listener for accessibility
+    document.addEventListener('keydown', function(event) {
+        if (event.key === ' ' || event.key === 'Enter') {
+            // Space or Enter starts/pauses the exercise
+            if (!startBtn.disabled) {
+                startBtn.click();
+            } else if (!pauseBtn.disabled) {
+                pauseBtn.click();
+            }
+        } else if (event.key === 'Escape') {
+            // Escape resets the exercise
+            if (!resetBtn.disabled) {
+                resetBtn.click();
+            }
+        }
+    });
+    
+    // CSS animation for pulse effect
+    const styleSheet = document.createElement('style');
+    styleSheet.textContent = `
+        @keyframes pulse {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.2); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        
+        @keyframes blink {
+            0% { height: 8px; }
+            50% { height: 2px; }
+            100% { height: 8px; }
+        }
+    `;
+    document.head.appendChild(styleSheet);
+</script>
+{% endblock %}

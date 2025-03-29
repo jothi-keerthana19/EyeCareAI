@@ -1,10 +1,15 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, send_from_directory
 import os
 import json
 import random
+import threading
+import time
 from datetime import datetime, timedelta
 
 app = Flask(__name__)
+
+# Background processing flag
+background_processing = False
 
 # Simulated data for eye health metrics
 class EyeHealthData:
@@ -180,6 +185,79 @@ def api_drowsiness_data():
 @app.route('/api/screen-time')
 def api_screen_time():
     return jsonify(eye_health_data.screen_time)
+
+# Serve OpenCV Haar cascade files
+@app.route('/haarcascade_frontalface_alt2.xml')
+def serve_face_cascade():
+    return send_from_directory('static/models', 'haarcascade_frontalface_alt2.xml')
+
+@app.route('/haarcascade_eye.xml')
+def serve_eye_cascade():
+    return send_from_directory('static/models', 'haarcascade_eye.xml')
+
+# API routes for eye tracking
+@app.route('/api/toggle-background', methods=['POST'])
+def toggle_background():
+    global background_processing
+    data = request.json
+    if 'enabled' in data:
+        background_processing = data['enabled']
+        
+        if background_processing:
+            # Start background worker in a new thread
+            thread = threading.Thread(target=background_worker)
+            thread.daemon = True  # Thread will exit when main program exits
+            thread.start()
+            
+        return jsonify({
+            'status': 'success',
+            'background_processing': background_processing,
+            'message': 'Background processing ' + ('enabled' if background_processing else 'disabled')
+        })
+    
+    return jsonify({
+        'status': 'error',
+        'message': 'Missing "enabled" parameter'
+    }), 400
+
+@app.route('/api/notification', methods=['POST'])
+def send_notification():
+    data = request.json
+    if 'title' in data and 'message' in data:
+        # In a real implementation, this would send a notification to the user's OS
+        # For this demo, we'll just log it
+        print(f"NOTIFICATION: {data['title']} - {data['message']}")
+        return jsonify({'status': 'success'})
+    return jsonify({'status': 'error', 'message': 'Missing title or message'}), 400
+
+# Background worker function
+def background_worker():
+    print("Background eye tracking worker started")
+    
+    while background_processing:
+        # In a real implementation, this would:
+        # 1. Access the webcam
+        # 2. Process frames to detect eyes
+        # 3. Analyze blink rate and drowsiness
+        # 4. Send notifications when needed
+        
+        # For demo purposes, just simulate periodic checking
+        print("Background worker: checking eye health...")
+        
+        # Simulate drowsiness detection at random intervals
+        if random.random() < 0.3:  # 30% chance each check
+            print("Background worker: drowsiness detected! Sending notification.")
+            # This would trigger a system notification in a real implementation
+        
+        # Sleep for a few seconds before next check
+        time.sleep(10)
+    
+    print("Background eye tracking worker stopped")
+
+# Implement a route for eye exercises
+@app.route('/eye-exercises')
+def eye_exercises():
+    return render_template('eye_exercises.html')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

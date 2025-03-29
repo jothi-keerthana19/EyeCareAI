@@ -16,46 +16,41 @@
             <div class="card-header">
                 <div class="d-flex justify-content-between align-items-center">
                     <span><i class="bi bi-camera-video"></i> Camera Feed</span>
-                    <span class="badge bg-success tracking-status">Tracking Active</span>
+                    <span class="badge bg-secondary tracking-status">Tracking Inactive</span>
                 </div>
             </div>
             <div class="card-body">
+                <div id="alertsContainer"></div>
+                
                 <div class="camera-feed-wrapper" style="position: relative; background-color: #000; height: 480px; border-radius: 10px; overflow: hidden;">
-                    <!-- Simulated camera feed showing eye detection -->
-                    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=" class="img-fluid" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.7;" />
+                    <!-- Live camera feed -->
+                    <video id="videoInput" style="position: absolute; width: 1px; height: 1px; opacity: 0;"></video>
+                    <canvas id="canvasOutput" style="width: 100%; height: 100%; object-fit: cover;"></canvas>
                     
-                    <!-- Overlay UI for eye tracking -->
-                    <div class="detection-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;">
-                        <!-- Simulated face detection rectangle -->
-                        <div class="face-rect" style="position: absolute; top: 120px; left: 240px; width: 320px; height: 320px; border: 2px solid #3a86ff; border-radius: 10px;"></div>
-                        
-                        <!-- Simulated left eye detection -->
-                        <div class="eye-rect left" style="position: absolute; top: 220px; left: 300px; width: 60px; height: 30px; border: 2px solid #ff006e; border-radius: 5px;"></div>
-                        
-                        <!-- Simulated right eye detection -->
-                        <div class="eye-rect right" style="position: absolute; top: 220px; left: 440px; width: 60px; height: 30px; border: 2px solid #ff006e; border-radius: 5px;"></div>
-                        
-                        <!-- Simulated blink status text -->
-                        <div class="blink-status" style="position: absolute; top: 50px; left: 50px; color: white; background-color: rgba(0,0,0,0.5); padding: 10px; border-radius: 5px;">
-                            Blink Rate: <span class="blink-value">17</span> bpm
-                        </div>
-                        
-                        <!-- Simulated drowsiness status text -->
-                        <div class="drowsiness-status" style="position: absolute; top: 50px; right: 50px; color: white; background-color: rgba(0,0,0,0.5); padding: 10px; border-radius: 5px;">
-                            Drowsiness: <span class="drowsiness-value">32%</span>
-                        </div>
+                    <!-- Status message overlay -->
+                    <div style="position: absolute; top: 10px; left: 10px; right: 10px; text-align: center; color: white; background-color: rgba(0,0,0,0.5); padding: 5px; border-radius: 5px; z-index: 100;">
+                        <span id="status">Waiting for camera access...</span>
+                    </div>
+                    
+                    <!-- Metrics overlays -->
+                    <div class="blink-status" style="position: absolute; top: 50px; left: 50px; color: white; background-color: rgba(0,0,0,0.5); padding: 10px; border-radius: 5px; z-index: 100;">
+                        Blink Rate: <span class="blink-value">0.0</span> bpm
+                    </div>
+                    
+                    <div class="drowsiness-status" style="position: absolute; top: 50px; right: 50px; color: white; background-color: rgba(0,0,0,0.5); padding: 10px; border-radius: 5px; z-index: 100;">
+                        Drowsiness: <span class="drowsiness-value">0%</span>
                     </div>
                 </div>
                 
                 <div class="d-grid gap-2 d-md-flex justify-content-md-between mt-3">
                     <button class="btn btn-primary tracking-toggle">
-                        <i class="bi bi-pause-circle"></i> Pause Tracking
+                        <i class="bi bi-play-circle"></i> Start Tracking
                     </button>
                     <div class="btn-group" role="group">
-                        <button class="btn btn-outline-secondary">
+                        <button class="btn btn-outline-secondary" id="screenshotBtn">
                             <i class="bi bi-camera"></i> Take Screenshot
                         </button>
-                        <button class="btn btn-outline-secondary">
+                        <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#sensitivityModal">
                             <i class="bi bi-sliders"></i> Adjust Sensitivity
                         </button>
                     </div>
@@ -73,23 +68,23 @@
                 <ul class="list-group list-group-flush">
                     <li class="list-group-item d-flex justify-content-between align-items-center">
                         Blink Rate
-                        <span class="badge bg-primary rounded-pill">17 bpm</span>
+                        <span class="badge bg-primary rounded-pill">0.0 bpm</span>
                     </li>
                     <li class="list-group-item d-flex justify-content-between align-items-center">
                         Blink Duration
-                        <span class="badge bg-primary rounded-pill">210 ms</span>
+                        <span class="badge bg-primary rounded-pill">0 ms</span>
                     </li>
                     <li class="list-group-item d-flex justify-content-between align-items-center">
                         Drowsiness Level
-                        <span class="badge bg-success rounded-pill">32%</span>
+                        <span class="badge bg-success rounded-pill">0%</span>
                     </li>
                     <li class="list-group-item d-flex justify-content-between align-items-center">
                         PERCLOS
-                        <span class="badge bg-primary rounded-pill">18%</span>
+                        <span class="badge bg-primary rounded-pill">0%</span>
                     </li>
                     <li class="list-group-item d-flex justify-content-between align-items-center">
                         Session Duration
-                        <span class="badge bg-secondary rounded-pill">12:45</span>
+                        <span id="sessionDuration" class="badge bg-secondary rounded-pill">00:00</span>
                     </li>
                 </ul>
             </div>
@@ -122,6 +117,79 @@
                 <div class="alert alert-info">
                     <i class="bi bi-info-circle"></i> Look directly at the camera for best detection results.
                 </div>
+                
+                <div class="d-grid gap-2 mt-3">
+                    <button class="btn btn-outline-primary btn-sm" id="backgroundModeBtn">
+                        <i class="bi bi-display"></i> Run in Background
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Sensitivity Settings Modal -->
+<div class="modal fade" id="sensitivityModal" tabindex="-1" aria-labelledby="sensitivityModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="sensitivityModalLabel">Adjust Detection Sensitivity</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="eyeDetectionSensitivity" class="form-label">Eye Detection Sensitivity</label>
+                    <input type="range" class="form-range" min="1" max="10" value="5" id="eyeDetectionSensitivity">
+                    <div class="d-flex justify-content-between">
+                        <small>Low</small>
+                        <small>High</small>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="drowsinessThreshold" class="form-label">Drowsiness Alert Threshold</label>
+                    <input type="range" class="form-range" min="40" max="80" value="60" id="drowsinessThreshold">
+                    <div class="d-flex justify-content-between">
+                        <small>Early (40%)</small>
+                        <small>Late (80%)</small>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="minHealthyBlinkRate" class="form-label">Minimum Healthy Blink Rate</label>
+                    <input type="number" class="form-control" id="minHealthyBlinkRate" value="15" min="10" max="25">
+                    <small class="text-muted">Blinks per minute below this value trigger alerts</small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Apply</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Background Mode Modal -->
+<div class="modal fade" id="backgroundModeModal" tabindex="-1" aria-labelledby="backgroundModeModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="backgroundModeModalLabel">Background Monitoring</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Eye tracking is now running in the background. You'll continue to receive notifications about:</p>
+                <ul>
+                    <li>Drowsiness detection</li>
+                    <li>Low blink rate warnings</li>
+                    <li>Break reminders</li>
+                </ul>
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i> You can minimize this window and continue your work. The app will monitor your eye health in the background.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
             </div>
         </div>
     </div>
@@ -129,74 +197,106 @@
 {% endblock %}
 
 {% block scripts %}
+<!-- OpenCV.js -->
+<script async src="https://docs.opencv.org/4.5.5/opencv.js" onload="onOpenCvReady();" type="text/javascript"></script>
+
+<!-- Eye Detection Script -->
+<script src="/static/js/eye_detection.js"></script>
+
 <script>
-    // Simulate blinking eyes in the UI
-    function simulateBlinking() {
-        const leftEye = document.querySelector('.eye-rect.left');
-        const rightEye = document.querySelector('.eye-rect.right');
+    let sessionStartTime = null;
+    let sessionTimer = null;
+    
+    // Update session duration
+    function updateSessionDuration() {
+        if (!sessionStartTime) return;
         
-        setInterval(() => {
-            // Randomly blink eyes (close them briefly)
-            if (Math.random() < 0.1) {  // 10% chance of blinking
-                leftEye.style.height = '3px';
-                rightEye.style.height = '3px';
-                
-                // Reopen eyes after a short delay
-                setTimeout(() => {
-                    leftEye.style.height = '30px';
-                    rightEye.style.height = '30px';
-                }, 200);
-            }
-        }, 1000);
+        const now = new Date();
+        const diff = Math.floor((now - sessionStartTime) / 1000);
+        const minutes = Math.floor(diff / 60);
+        const seconds = diff % 60;
+        
+        const formatted = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        document.getElementById('sessionDuration').textContent = formatted;
     }
     
-    // Simulate changing metrics
-    function simulateMetricsChange() {
-        const blinkValue = document.querySelector('.blink-value');
-        const drowsinessValue = document.querySelector('.drowsiness-value');
+    // Start session timer
+    function startSessionTimer() {
+        sessionStartTime = new Date();
+        sessionTimer = setInterval(updateSessionDuration, 1000);
+    }
+    
+    // Stop session timer
+    function stopSessionTimer() {
+        clearInterval(sessionTimer);
+        sessionTimer = null;
+    }
+    
+    // Take a screenshot
+    document.getElementById('screenshotBtn').addEventListener('click', function() {
+        if (!streaming) {
+            alert('Please start tracking first to take a screenshot.');
+            return;
+        }
         
-        setInterval(() => {
-            // Update blink rate with small random variations
-            const currentBlink = parseInt(blinkValue.textContent);
-            const newBlink = Math.max(10, Math.min(25, currentBlink + (Math.random() > 0.5 ? 1 : -1)));
-            blinkValue.textContent = newBlink;
-            
-            // Update drowsiness with small random variations
-            const currentDrowsiness = parseInt(drowsinessValue.textContent);
-            const newDrowsiness = Math.max(5, Math.min(95, currentDrowsiness + (Math.random() > 0.7 ? 2 : -1)));
-            drowsinessValue.textContent = newDrowsiness + '%';
-            
-            // Update drowsiness color based on level
-            if (newDrowsiness > 70) {
-                drowsinessValue.parentElement.style.backgroundColor = 'rgba(220, 53, 69, 0.8)';
-            } else if (newDrowsiness > 50) {
-                drowsinessValue.parentElement.style.backgroundColor = 'rgba(255, 193, 7, 0.8)';
-            } else {
-                drowsinessValue.parentElement.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
-            }
+        const canvas = document.getElementById('canvasOutput');
+        const dataURL = canvas.toDataURL('image/png');
+        
+        // Create an invisible link element and trigger download
+        const a = document.createElement('a');
+        a.href = dataURL;
+        a.download = `eyecare_screenshot_${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        
+        // Show confirmation
+        const alertsContainer = document.getElementById('alertsContainer');
+        const alertElement = document.createElement('div');
+        alertElement.className = 'alert alert-success alert-dismissible fade show';
+        alertElement.innerHTML = `
+            <strong>Screenshot Saved!</strong> The image has been downloaded to your device.
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        `;
+        
+        alertsContainer.appendChild(alertElement);
+        
+        // Auto dismiss after 3 seconds
+        setTimeout(() => {
+            alertElement.classList.remove('show');
+            setTimeout(() => alertElement.remove(), 150);
         }, 3000);
-    }
+    });
     
-    // Handle tracking toggle button
-    document.querySelector('.tracking-toggle').addEventListener('click', function() {
-        const isTracking = this.innerHTML.includes('Pause');
-        const statusBadge = document.querySelector('.tracking-status');
-        
-        if (isTracking) {
-            this.innerHTML = '<i class="bi bi-play-circle"></i> Resume Tracking';
-            statusBadge.className = 'badge bg-warning tracking-status';
-            statusBadge.textContent = 'Tracking Paused';
+    // Background mode button
+    document.getElementById('backgroundModeBtn').addEventListener('click', function() {
+        // Show the background mode modal
+        const backgroundModal = new bootstrap.Modal(document.getElementById('backgroundModeModal'));
+        backgroundModal.show();
+    });
+    
+    // Handle browser visibility changes for background mode
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden) {
+            // Page is hidden (user switched tabs or minimized)
+            console.log('Page is now in background mode');
+            
+            // Could add specific background behavior here
         } else {
-            this.innerHTML = '<i class="bi bi-pause-circle"></i> Pause Tracking';
-            statusBadge.className = 'badge bg-success tracking-status';
-            statusBadge.textContent = 'Tracking Active';
+            // Page is visible again
+            console.log('Page is now visible again');
         }
     });
     
-    // Initialize simulations when page loads
-    document.addEventListener('DOMContentLoaded', function() {
-        simulateBlinking();
-        simulateMetricsChange();
+    // Override tracking toggle button to also handle session timer
+    document.querySelector('.tracking-toggle').addEventListener('click', function() {
+        const isStarting = this.innerHTML.includes('Start');
+        
+        if (isStarting) {
+            startSessionTimer();
+        } else {
+            stopSessionTimer();
+        }
     });
 </script>
 {% endblock %}
