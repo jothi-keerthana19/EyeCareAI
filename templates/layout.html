@@ -9,9 +9,27 @@
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        :root {
+            --primary-color: #3a86ff;
+            --secondary-color: #2b2d42;
+            --accent-color: #48cae4;
+            --background-color: #f8f9fa;
+        }
+        
+        body {
+            background-color: var(--background-color);
+            font-family: 'Inter', sans-serif;
+        }
+        
         .navbar-brand {
             font-weight: bold;
-            color: #3a86ff !important;
+            color: var(--primary-color) !important;
+            font-size: 1.5rem;
+        }
+        
+        .navbar {
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            background-color: white !important;
         }
         .eye-icon {
             color: #3a86ff;

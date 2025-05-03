@@ -191,7 +191,7 @@ def api_screen_time():
 def serve_face_cascade():
     print("Serving face cascade file...")
     try:
-        return send_from_directory('static/models', 'haarcascade_frontalface_alt2.xml')
+        return send_from_directory('static/models', 'haarcascade_frontalface_alt2.xml', mimetype='text/xml')
     except Exception as e:
         print(f"Error serving face cascade: {e}")
         return str(e), 500

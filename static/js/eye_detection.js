@@ -133,7 +133,7 @@ function loadClassifiers() {
 
     // Load the face classifier with correct path
     faceClassifier = new cv.CascadeClassifier();
-    const faceCascadePath = '/static/models/haarcascade_frontalface_alt2.xml';
+    const faceCascadePath = 'haarcascade_frontalface_alt2.xml';
     fetch(faceCascadePath)
         .then(response => response.arrayBuffer())
         .then(buffer => {
