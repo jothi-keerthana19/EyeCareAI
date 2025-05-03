@@ -144,9 +144,17 @@ function processVideo() {
             return;
         }
 
-        // Create OpenCV matrices
-        if (!src) {
-            console.log("Creating matrices with dimensions:", video.videoHeight, video.videoWidth);
+        // Create OpenCV matrices with correct video dimensions
+        if (!src || src.rows !== video.videoHeight || src.cols !== video.videoWidth) {
+            // Clean up existing matrices if they exist
+            if (src) {
+                src.delete();
+                dstC1.delete();
+                dstC3.delete();
+                dstC4.delete();
+            }
+
+            // Create new matrices with correct dimensions
             src = new cv.Mat(video.videoHeight, video.videoWidth, cv.CV_8UC4);
             dstC1 = new cv.Mat(video.videoHeight, video.videoWidth, cv.CV_8UC1);
             dstC3 = new cv.Mat(video.videoHeight, video.videoWidth, cv.CV_8UC3);
