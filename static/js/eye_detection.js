@@ -31,6 +31,10 @@ function initElements() {
         return;
     }
     
+    // Set default canvas dimensions before video loads
+    canvasOutput.width = 640;
+    canvasOutput.height = 480;
+    
     canvasOutputCtx = canvasOutput.getContext('2d');
     
     // Clear the canvas
@@ -132,12 +136,21 @@ function processVideo() {
     try {
         const begin = Date.now();
         
+        // Check if video dimensions are valid
+        if (video.videoWidth === 0 || video.videoHeight === 0) {
+            // Video dimensions not ready yet, retry after a delay
+            console.log("Video dimensions not ready yet, retrying in 100ms...");
+            setTimeout(processVideo, 100);
+            return;
+        }
+        
         // Create OpenCV matrices
         if (!src) {
-            src = new cv.Mat(video.height, video.width, cv.CV_8UC4);
-            dstC1 = new cv.Mat(video.height, video.width, cv.CV_8UC1);
-            dstC3 = new cv.Mat(video.height, video.width, cv.CV_8UC3);
-            dstC4 = new cv.Mat(video.height, video.width, cv.CV_8UC4);
+            console.log("Creating matrices with dimensions:", video.videoHeight, video.videoWidth);
+            src = new cv.Mat(video.videoHeight, video.videoWidth, cv.CV_8UC4);
+            dstC1 = new cv.Mat(video.videoHeight, video.videoWidth, cv.CV_8UC1);
+            dstC3 = new cv.Mat(video.videoHeight, video.videoWidth, cv.CV_8UC3);
+            dstC4 = new cv.Mat(video.videoHeight, video.videoWidth, cv.CV_8UC4);
         }
         
         // Capture a frame from the video
@@ -184,10 +197,29 @@ function processVideo() {
                 // Extract the eye region for analysis
                 const eyeROI = dstC1.roi(new cv.Rect(face.x + eye.x, face.y + eye.y, eye.width, eye.height));
                 
-                // Simple analysis: if the eye height is very small, consider it closed
-                if (eye.height > eye.width * 0.35) {
+                // More reliable eye open/closed detection
+                // Extract region of interest for the eye
+                const eyeRegion = new cv.Mat();
+                cv.cvtColor(eyeROI, eyeRegion, cv.COLOR_GRAY2RGBA);
+                
+                // Calculate the average brightness of the eye region
+                const mean = cv.mean(eyeRegion);
+                const brightness = (mean[0] + mean[1] + mean[2]) / 3;
+                
+                // Use both aspect ratio and brightness to determine eye state
+                // When eyes are closed, aspect ratio decreases and region gets darker
+                if (eye.height > eye.width * 0.35 && brightness > 50) {
                     eyesOpen++;
+                    // Draw text to indicate open eye
+                    const textPoint = new cv.Point(face.x + eye.x, face.y + eye.y - 5);
+                    cv.putText(src, "Open", textPoint, cv.FONT_HERSHEY_SIMPLEX, 0.5, [0, 255, 0, 255], 1);
+                } else {
+                    // Draw text to indicate closed eye
+                    const textPoint = new cv.Point(face.x + eye.x, face.y + eye.y - 5);
+                    cv.putText(src, "Closed", textPoint, cv.FONT_HERSHEY_SIMPLEX, 0.5, [255, 0, 0, 255], 1);
                 }
+                
+                eyeRegion.delete();
                 
                 eyeROI.delete();
             }
@@ -267,8 +299,25 @@ function processVideo() {
         const delay = 1000 / 30 - (Date.now() - begin);
         setTimeout(processVideo, delay > 0 ? delay : 0);
     } catch (err) {
-        console.error(err);
-        updateStatus('Error: ' + err.message);
+        console.error('Processing error:', err);
+        
+        // Clean up any resources that might have been created before the error
+        if (src && !src.isDeleted) src.delete();
+        
+        // Check for specific errors and provide better error messages
+        if (err.message.includes('getImageData')) {
+            updateStatus('Camera initialization error. Please check camera permissions and try again.');
+            // Try to recover by waiting and then restarting
+            setTimeout(processVideo, 1000);
+        } else if (err.message.includes('roi')) {
+            updateStatus('Face/eye detection error. Position may be out of bounds.');
+            // Continue processing next frame
+            setTimeout(processVideo, 30);
+        } else {
+            updateStatus('Error: ' + err.message);
+            // Try to recover for non-critical errors
+            setTimeout(processVideo, 500);
+        }
     }
 }
 
