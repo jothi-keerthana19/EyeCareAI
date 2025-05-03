@@ -4,7 +4,7 @@ modules = ["kotlin", "python-3.11"]
 channel = "stable-24_05"
 
 [workflows]
-runButton = "Project"
+runButton = "EyeCareAI-Dev"
 
 [[workflows.workflow]]
 name = "Project"
@@ -29,6 +29,15 @@ task = "packager.installForAll"
 task = "shell.exec"
 args = "python app.py"
 waitForPort = 5000
+
+[[workflows.workflow]]
+name = "EyeCareAI-Dev"
+author = 40972646
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python app.py"
 
 [deployment]
 run = ["sh", "-c", "./gradlew :app:assembleDebug && cd app/build/outputs && python -m http.server 5000"]
