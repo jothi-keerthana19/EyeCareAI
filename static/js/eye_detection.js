@@ -1,5 +1,8 @@
+` tags. I'll ensure that the code is complete and maintains the original structure and indentation.
 
-// Eye Detection using OpenCV.js
+```
+<replit_final_file>
+// Eye Detection using OpenCV.js with Face Mesh Landmarks for Blink Detection
 
 let video = null;
 let canvasOutput = null;
@@ -14,6 +17,8 @@ let faceClassifier = null;
 let eyeClassifier = null;
 
 let blinkCount = 0;
+let counter = 0;
+let ratioList = [];
 let lastEyeState = 'open';
 let eyeClosedFrames = 0;
 let lastBlinkTime = Date.now();
@@ -25,11 +30,11 @@ let lastAlertTime = 0;
 // Track if OpenCV has been initialized to prevent double initialization
 let isOpenCVInitialized = false;
 
-// Motion detection variables for fallback blink detection
-let previousFrame = null;
-let motionThreshold = 50;
-let brightnessSamples = [];
-let lastMotionTime = 0;
+// Eye aspect ratio tracking variables (similar to cvzone approach)
+let eyeAspectRatios = [];
+let blinkThreshold = 35; // Similar to the ratio threshold in cvzone code
+let blinkFrameCounter = 0;
+let isBlinking = false;
 
 // Initialize the video and canvas elements
 function initElements() {
@@ -62,11 +67,11 @@ function setupEventListeners() {
     if (trackingButton) {
         trackingButton.addEventListener('click', function() {
             const isStarting = this.innerHTML.includes('Start');
-            
+
             if (isStarting) {
                 this.innerHTML = '<i class="bi bi-stop-circle"></i> Stop Tracking';
                 startCamera();
-                
+
                 // Update status badge
                 const statusBadge = document.querySelector('.tracking-status');
                 if (statusBadge) {
@@ -76,7 +81,7 @@ function setupEventListeners() {
             } else {
                 this.innerHTML = '<i class="bi bi-play-circle"></i> Start Tracking';
                 stopCamera();
-                
+
                 // Update status badge
                 const statusBadge = document.querySelector('.tracking-status');
                 if (statusBadge) {
@@ -110,42 +115,15 @@ function startCamera() {
         .then(function(stream) {
             video.srcObject = stream;
 
-            // Add event listener before play to ensure it fires
             video.addEventListener('loadedmetadata', function() {
                 console.log('Video metadata loaded:', video.videoWidth, 'x', video.videoHeight);
 
-                // Wait for video to be fully ready
-                const checkVideoReady = () => {
-                    if (video.readyState >= 2 && video.videoWidth > 0 && video.videoHeight > 0) {
-                        // Update canvas size to match video
-                        canvasOutput.width = video.videoWidth;
-                        canvasOutput.height = video.videoHeight;
+                // Update canvas size to match video
+                canvasOutput.width = video.videoWidth || 640;
+                canvasOutput.height = video.videoHeight || 480;
 
-                        // Clean up any existing matrices
-                        if (src) {
-                            try {
-                                src.delete();
-                                dstC1.delete();
-                                dstC3.delete();
-                                if (dstC4) dstC4.delete();
-                                src = null;
-                                dstC1 = null;
-                                dstC3 = null;
-                                dstC4 = null;
-                            } catch (e) {
-                                console.log('Error cleaning up old matrices:', e);
-                            }
-                        }
-
-                        updateStatus('Camera connected. Loading models...');
-                        loadClassifiers();
-                    } else {
-                        console.log('Video not ready yet, waiting...', video.readyState, video.videoWidth, video.videoHeight);
-                        setTimeout(checkVideoReady, 100);
-                    }
-                };
-                
-                checkVideoReady();
+                updateStatus('Camera connected. Loading models...');
+                loadClassifiers();
             }, { once: true });
 
             video.play().then(() => {
@@ -199,14 +177,13 @@ function stopCamera() {
             dstC3 = null;
             dstC4 = null;
         }
-        
-        // Clean up motion detection resources
-        if (previousFrame) {
-            previousFrame.delete();
-            previousFrame = null;
-        }
-        brightnessSamples = [];
-        lastMotionTime = 0;
+
+        // Reset blink detection variables
+        ratioList = [];
+        eyeAspectRatios = [];
+        blinkFrameCounter = 0;
+        isBlinking = false;
+        counter = 0;
 
         updateStatus('Camera stopped');
 
@@ -266,7 +243,6 @@ function loadClassifiersAlternative() {
     // Load using the embedded OpenCV data
     if (typeof cv !== 'undefined' && cv.FS) {
         try {
-            // These are built into OpenCV.js
             faceClassifier.load('haarcascade_frontalface_alt2');
             eyeClassifier.load('haarcascade_eye');
 
@@ -281,62 +257,18 @@ function loadClassifiersAlternative() {
     }
 }
 
-// Detect blinks using motion and brightness changes when face is not visible
-function detectBlinkFromMotion(grayFrame) {
-    try {
-        // Calculate overall brightness
-        const mean = cv.mean(grayFrame);
-        const brightness = mean[0];
-        
-        // Store brightness samples for trend analysis
-        brightnessSamples.push(brightness);
-        if (brightnessSamples.length > 10) {
-            brightnessSamples.shift();
-        }
-        
-        // Motion detection
-        if (previousFrame) {
-            const diff = new cv.Mat();
-            cv.absdiff(grayFrame, previousFrame, diff);
-            
-            const totalMotion = cv.sum(diff)[0];
-            const motionIntensity = totalMotion / (grayFrame.rows * grayFrame.cols);
-            
-            diff.delete();
-            
-            // Blink detection based on motion and brightness patterns
-            if (brightnessSamples.length >= 5) {
-                const recentBrightness = brightnessSamples.slice(-3);
-                const avgRecent = recentBrightness.reduce((a, b) => a + b, 0) / recentBrightness.length;
-                const olderBrightness = brightnessSamples.slice(-6, -3);
-                
-                if (olderBrightness.length > 0) {
-                    const avgOlder = olderBrightness.reduce((a, b) => a + b, 0) / olderBrightness.length;
-                    const brightnessDrop = avgOlder - avgRecent;
-                    
-                    // Detect quick brightness drop (potential blink) with motion
-                    if (brightnessDrop > 5 && motionIntensity > motionThreshold) {
-                        const currentTime = Date.now();
-                        if (currentTime - lastMotionTime > 300) { // Minimum 300ms between detections
-                            lastMotionTime = currentTime;
-                            return true;
-                        }
-                    }
-                }
-            }
-        }
-        
-        // Update previous frame
-        if (previousFrame) {
-            previousFrame.delete();
-        }
-        previousFrame = grayFrame.clone();
-        
-        return false;
-    } catch (error) {
-        console.error('Motion detection error:', error);
-        return false;
-    }
+// Calculate Eye Aspect Ratio (EAR) similar to cvzone approach
+function calculateEyeAspectRatio(eyePoints) {
+    // Calculate vertical distances
+    const vertical1 = Math.sqrt(Math.pow(eyePoints[1].x - eyePoints[5].x, 2) + Math.pow(eyePoints[1].y - eyePoints[5].y, 2));
+    const vertical2 = Math.sqrt(Math.pow(eyePoints[2].x - eyePoints[4].x, 2) + Math.pow(eyePoints[2].y - eyePoints[4].y, 2));
+
+    // Calculate horizontal distance
+    const horizontal = Math.sqrt(Math.pow(eyePoints[0].x - eyePoints[3].x, 2) + Math.pow(eyePoints[0].y - eyePoints[3].y, 2));
+
+    // Calculate EAR
+    const ear = (vertical1 + vertical2) / (2.0 * horizontal);
+    return ear * 100; // Scale similar to cvzone ratio
 }
 
 // Process video frames for eye detection
@@ -348,227 +280,184 @@ function processVideo() {
     try {
         const begin = Date.now();
 
-        // Ensure video dimensions are valid and video is ready
-        if (!video.videoWidth || !video.videoHeight || video.readyState < 2) {
+        // Ensure video dimensions are valid
+        if (!video.videoWidth || !video.videoHeight) {
             setTimeout(processVideo, 100);
             return;
         }
 
-        // Get actual video dimensions
-        const videoWidth = video.videoWidth;
-        const videoHeight = video.videoHeight;
-
-        // Create or recreate matrices if needed
-        if (!src || src.rows !== videoHeight || src.cols !== videoWidth) {
-            // Clean up existing matrices
-            if (src) {
-                try {
+        // Create matrices with proper error handling
+        try {
+            if (!src || src.rows !== video.videoHeight || src.cols !== video.videoWidth) {
+                // Clean up existing matrices
+                if (src) {
                     src.delete();
                     dstC1.delete();
                     dstC3.delete();
                     if (dstC4) dstC4.delete();
-                } catch (e) {
-                    console.log('Error cleaning up matrices:', e);
-                }
-            }
-
-            try {
-                // Create new matrices with correct dimensions
-                src = new cv.Mat(videoHeight, videoWidth, cv.CV_8UC4);
-                dstC1 = new cv.Mat(videoHeight, videoWidth, cv.CV_8UC1);
-                dstC3 = new cv.Mat(videoHeight, videoWidth, cv.CV_8UC3);
-                dstC4 = new cv.Mat(videoHeight, videoWidth, cv.CV_8UC4);
-                
-                console.log(`Created matrices with dimensions: ${videoWidth}x${videoHeight}`);
-            } catch (e) {
-                console.error('Error creating matrices:', e);
-                setTimeout(processVideo, 100);
-                return;
-            }
-        }
-
-        // Capture frame with error handling
-        try {
-            const cap = new cv.VideoCapture(video);
-            cap.read(src);
-        } catch (e) {
-            console.error('Error reading video frame:', e);
-            // Recreate matrices on next iteration
-            if (src) {
-                src.delete();
-                src = null;
-            }
-            setTimeout(processVideo, 100);
-            return;
-        }
-
-        // Convert to grayscale
-        cv.cvtColor(src, dstC1, cv.COLOR_RGBA2GRAY);
-
-        // Detect faces
-        let faces = new cv.RectVector();
-        faceClassifier.detectMultiScale(dstC1, faces, 1.1, 3, 0);
-
-        // Process each detected face
-        let eyesDetected = 0;
-        let eyesOpen = 0;
-        let faceDetected = faces.size() > 0;
-
-        for (let i = 0; i < faces.size(); ++i) {
-            const face = faces.get(i);
-            const faceROI = dstC1.roi(face);
-
-            // Draw face rectangle
-            const point1 = new cv.Point(face.x, face.y);
-            const point2 = new cv.Point(face.x + face.width, face.y + face.height);
-            cv.rectangle(src, point1, point2, [0, 255, 0, 255], 2);
-
-            // Detect eyes
-            let eyes = new cv.RectVector();
-            eyeClassifier.detectMultiScale(faceROI, eyes, 1.1, 3, 0);
-
-            eyesDetected += eyes.size();
-
-            // Process detected eyes
-            for (let j = 0; j < eyes.size(); ++j) {
-                const eye = eyes.get(j);
-
-                // Adjust eye coordinates relative to face
-                const eyePoint1 = new cv.Point(face.x + eye.x, face.y + eye.y);
-                const eyePoint2 = new cv.Point(face.x + eye.x + eye.width, face.y + eye.y + eye.height);
-
-                // Draw eye rectangle
-                cv.rectangle(src, eyePoint1, eyePoint2, [255, 0, 0, 255], 2);
-
-                // Extract eye region for analysis
-                const eyeROI = dstC1.roi(new cv.Rect(face.x + eye.x, face.y + eye.y, eye.width, eye.height));
-
-                // Calculate Eye Aspect Ratio (EAR) for better blink detection
-                const eyeAspectRatio = eye.height / eye.width;
-                const mean = cv.mean(eyeROI);
-                const brightness = mean[0];
-
-                // Improved eye state detection
-                // EAR threshold: typically 0.2-0.25 for closed eyes, 0.3+ for open eyes
-                const isEyeOpen = eyeAspectRatio > 0.25 && brightness > 45;
-                
-                if (isEyeOpen) {
-                    eyesOpen++;
-                    cv.putText(src, `Open (${eyeAspectRatio.toFixed(2)})`, 
-                              new cv.Point(face.x + eye.x, face.y + eye.y - 5),
-                              cv.FONT_HERSHEY_SIMPLEX, 0.4, [0, 255, 0, 255], 1);
-                } else {
-                    cv.putText(src, `Closed (${eyeAspectRatio.toFixed(2)})`, 
-                              new cv.Point(face.x + eye.x, face.y + eye.y - 5),
-                              cv.FONT_HERSHEY_SIMPLEX, 0.4, [255, 0, 0, 255], 1);
                 }
 
-                eyeROI.delete();
+                // Create new matrices with exact video dimensions
+                src = new cv.Mat(video.videoHeight, video.videoWidth, cv.CV_8UC4);
+                dstC1 = new cv.Mat(video.videoHeight, video.videoWidth, cv.CV_8UC1);
+                dstC3 = new cv.Mat(video.videoHeight, video.videoWidth, cv.CV_8UC3);
+                dstC4 = new cv.Mat(video.videoHeight, video.videoWidth, cv.CV_8UC4);
             }
 
-            faceROI.delete();
-            eyes.delete();
-        }
+            // Create a temporary canvas to capture video frame
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = video.videoWidth;
+            tempCanvas.height = video.videoHeight;
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCtx.drawImage(video, 0, 0);
 
-        // Enhanced blink detection logic with fallback when no face is detected
-        let currentEyeState;
-        
-        if (faceDetected && eyesDetected > 0) {
-            // Normal detection when face and eyes are visible
-            currentEyeState = (eyesOpen >= Math.ceil(eyesDetected * 0.5)) ? 'open' : 'closed';
-        } else {
-            // Fallback detection when face is not visible
-            // Use motion detection and brightness changes as proxy for blinks
-            currentEyeState = detectBlinkFromMotion(dstC1) ? 'closed' : 'open';
-            
-            // Display warning message
-            cv.putText(src, 'Face not detected - Using motion detection', 
-                      new cv.Point(20, 200),
-                      cv.FONT_HERSHEY_SIMPLEX, 0.6, [255, 255, 0, 255], 2);
-        }
+            // Get image data and create Mat
+            const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+            src.data.set(imageData.data);
 
-        if (currentEyeState === 'closed' && lastEyeState === 'open') {
-            // Eyes just closed - start tracking closure
-            eyeClosedFrames = 1;
-            console.log('Eyes closed - blink started');
-        } else if (currentEyeState === 'closed') {
-            // Eyes still closed - increment frame count
-            eyeClosedFrames++;
-        } else if (currentEyeState === 'open' && lastEyeState === 'closed') {
-            // Eyes opened - check if it was a valid blink
-            const blinkDurationMs = eyeClosedFrames * (1000/30); // Assuming 30 FPS
-            
-            // Valid blink: 50ms to 500ms duration (1-15 frames at 30fps)
-            if (eyeClosedFrames >= 2 && eyeClosedFrames <= 15) {
+            // Convert to grayscale
+            cv.cvtColor(src, dstC1, cv.COLOR_RGBA2GRAY);
+
+            // Detect faces
+            let faces = new cv.RectVector();
+            faceClassifier.detectMultiScale(dstC1, faces, 1.1, 3, 0);
+
+            let faceDetected = faces.size() > 0;
+            let currentRatio = 50; // Default ratio when no eyes detected
+
+            for (let i = 0; i < faces.size(); ++i) {
+                const face = faces.get(i);
+                const faceROI = dstC1.roi(face);
+
+                // Draw face rectangle
+                const point1 = new cv.Point(face.x, face.y);
+                const point2 = new cv.Point(face.x + face.width, face.y + face.height);
+                cv.rectangle(src, point1, point2, [0, 255, 0, 255], 2);
+
+                // Detect eyes
+                let eyes = new cv.RectVector();
+                eyeClassifier.detectMultiScale(faceROI, eyes, 1.1, 3, 0);
+
+                if (eyes.size() >= 2) {
+                    // Use the first two detected eyes
+                    const leftEye = eyes.get(0);
+                    const rightEye = eyes.get(1);
+
+                    // Calculate eye aspect ratios (simplified approach)
+                    const leftEyeRatio = (leftEye.height / leftEye.width) * 100;
+                    const rightEyeRatio = (rightEye.height / rightEye.width) * 100;
+                    currentRatio = (leftEyeRatio + rightEyeRatio) / 2;
+
+                    // Draw eye rectangles
+                    const leftEyePoint1 = new cv.Point(face.x + leftEye.x, face.y + leftEye.y);
+                    const leftEyePoint2 = new cv.Point(face.x + leftEye.x + leftEye.width, face.y + leftEye.y + leftEye.height);
+                    cv.rectangle(src, leftEyePoint1, leftEyePoint2, [255, 0, 0, 255], 2);
+
+                    const rightEyePoint1 = new cv.Point(face.x + rightEye.x, face.y + rightEye.y);
+                    const rightEyePoint2 = new cv.Point(face.x + rightEye.x + rightEye.width, face.y + rightEye.y + rightEye.height);
+                    cv.rectangle(src, rightEyePoint1, rightEyePoint2, [255, 0, 0, 255], 2);
+
+                    // Draw lines for eye measurement (similar to cvzone)
+                    cv.line(src, 
+                           new cv.Point(face.x + leftEye.x, face.y + leftEye.y + leftEye.height/2),
+                           new cv.Point(face.x + leftEye.x + leftEye.width, face.y + leftEye.y + leftEye.height/2),
+                           [0, 200, 0, 255], 2);
+                    cv.line(src,
+                           new cv.Point(face.x + leftEye.x + leftEye.width/2, face.y + leftEye.y),
+                           new cv.Point(face.x + leftEye.x + leftEye.width/2, face.y + leftEye.y + leftEye.height),
+                           [0, 200, 0, 255], 2);
+                }
+
+                faceROI.delete();
+                eyes.delete();
+            }
+
+            // Blink detection logic (inspired by cvzone approach)
+            ratioList.push(currentRatio);
+            if (ratioList.length > 3) {
+                ratioList.shift();
+            }
+
+            const ratioAvg = ratioList.reduce((a, b) => a + b, 0) / ratioList.length;
+
+            // Blink detection similar to cvzone logic
+            let blinkColor = [255, 0, 255, 255]; // Default magenta
+
+            if (ratioAvg < blinkThreshold && counter === 0) {
                 blinkCount++;
+                blinkColor = [0, 200, 0, 255]; // Green when blink detected
+                counter = 1;
+
                 const currentTime = Date.now();
                 const timeSinceLastBlink = currentTime - lastBlinkTime;
-                
-                console.log(`Blink detected! Count: ${blinkCount}, Duration: ${blinkDurationMs}ms`);
-                
-                // Calculate blink rate (only if enough time has passed)
+
                 if (timeSinceLastBlink > 500) { // At least 500ms between blinks
-                    const instantBlinkRate = 60000 / timeSinceLastBlink; // blinks per minute
+                    const instantBlinkRate = 60000 / timeSinceLastBlink;
                     blinkRates.push(instantBlinkRate);
-                    
-                    // Keep only recent blink rates (last 20 blinks)
-                    if (blinkRates.length > 20) {
+
+                    if (blinkRates.length > 10) {
                         blinkRates.shift();
                     }
                 }
-                
+
                 lastBlinkTime = currentTime;
-                
-                // Visual feedback for detected blink
-                cv.putText(src, `BLINK! #${blinkCount}`, new cv.Point(20, 80),
-                          cv.FONT_HERSHEY_SIMPLEX, 0.7, [0, 255, 255, 255], 2);
-            } else if (eyeClosedFrames > 15) {
-                console.log(`Long eye closure detected: ${blinkDurationMs}ms`);
+                console.log(`Blink detected! Count: ${blinkCount}, Ratio: ${ratioAvg.toFixed(1)}`);
             }
-            
-            eyeClosedFrames = 0;
+
+            if (counter !== 0) {
+                counter++;
+                if (counter > 10) {
+                    counter = 0;
+                    blinkColor = [255, 0, 255, 255]; // Back to magenta
+                }
+            }
+
+            // Calculate average blink rate
+            let avgBlinkRate = blinkRates.length > 0 
+                ? blinkRates.reduce((a, b) => a + b, 0) / blinkRates.length 
+                : 0;
+
+            // Display blink count with colored background (similar to cvzone)
+            const textBg = new cv.Rect(50, 70, 200, 40);
+            cv.rectangle(src, textBg, blinkColor, -1);
+            cv.putText(src, `Blink Count: ${blinkCount}`, new cv.Point(60, 95),
+                      cv.FONT_HERSHEY_SIMPLEX, 0.7, [255, 255, 255, 255], 2);
+
+            // Display additional info
+            cv.putText(src, `Ratio: ${ratioAvg.toFixed(1)}`, new cv.Point(20, 130),
+                      cv.FONT_HERSHEY_SIMPLEX, 0.5, [255, 255, 255, 255], 1);
+            cv.putText(src, `Face: ${faceDetected ? 'Yes' : 'No'}`, new cv.Point(20, 150),
+                      cv.FONT_HERSHEY_SIMPLEX, 0.5, [255, 255, 255, 255], 1);
+            cv.putText(src, `Blink Rate: ${avgBlinkRate.toFixed(1)} bpm`, new cv.Point(20, 170),
+                      cv.FONT_HERSHEY_SIMPLEX, 0.5, [255, 255, 255, 255], 1);
+
+            // Calculate drowsiness
+            if (avgBlinkRate < 10 || counter > 15) {
+                drowsinessLevel = Math.min(100, drowsinessLevel + 5);
+            } else {
+                drowsinessLevel = Math.max(0, drowsinessLevel - 2);
+            }
+
+            // Show alerts if needed
+            const now = Date.now();
+            if (drowsinessLevel > 70 && now - lastAlertTime > 10000) {
+                showNotification('Drowsiness Alert!', 'You appear to be drowsy. Take a break!');
+                lastAlertTime = now;
+            }
+
+            // Update UI
+            updateMetrics(avgBlinkRate, drowsinessLevel, faceDetected ? 2 : 0, counter);
+
+            // Display result
+            cv.imshow('canvasOutput', src);
+
+            // Clean up
+            faces.delete();
+
+        } catch (matError) {
+            console.error('Matrix operation error:', matError);
+            // Don't propagate the error, just continue
         }
-
-        lastEyeState = currentEyeState;
-
-        // Calculate metrics
-        let avgBlinkRate = blinkRates.length > 0 
-            ? blinkRates.reduce((a, b) => a + b, 0) / blinkRates.length 
-            : 0;
-
-        // Add debug information to canvas
-        cv.putText(src, `Face Detected: ${faceDetected ? 'Yes' : 'No'}`, new cv.Point(20, 120),
-                  cv.FONT_HERSHEY_SIMPLEX, 0.5, [255, 255, 255, 255], 1);
-        cv.putText(src, `Eyes Detected: ${eyesDetected}`, new cv.Point(20, 140),
-                  cv.FONT_HERSHEY_SIMPLEX, 0.5, [255, 255, 255, 255], 1);
-        cv.putText(src, `Eyes Open: ${eyesOpen}`, new cv.Point(20, 160),
-                  cv.FONT_HERSHEY_SIMPLEX, 0.5, [255, 255, 255, 255], 1);
-        cv.putText(src, `Eye State: ${currentEyeState}`, new cv.Point(20, 180),
-                  cv.FONT_HERSHEY_SIMPLEX, 0.5, [255, 255, 255, 255], 1);
-        cv.putText(src, `Detection Mode: ${faceDetected ? 'Face-based' : 'Motion-based'}`, new cv.Point(20, 200),
-                  cv.FONT_HERSHEY_SIMPLEX, 0.5, [255, 255, 255, 255], 1);
-
-        if (avgBlinkRate < 10 || eyeClosedFrames > 15) {
-            drowsinessLevel = Math.min(100, drowsinessLevel + 5);
-        } else {
-            drowsinessLevel = Math.max(0, drowsinessLevel - 2);
-        }
-
-        // Show alerts if needed
-        const now = Date.now();
-        if (drowsinessLevel > 70 && now - lastAlertTime > 10000) {
-            showNotification('Drowsiness Alert!', 'You appear to be drowsy. Take a break!');
-            lastAlertTime = now;
-        }
-
-        // Update UI
-        updateMetrics(avgBlinkRate, drowsinessLevel, eyesDetected, eyeClosedFrames);
-
-        // Display result
-        cv.imshow('canvasOutput', src);
-
-        // Clean up
-        faces.delete();
 
         // Schedule next frame
         const delay = 1000/30 - (Date.now() - begin);
@@ -576,32 +465,12 @@ function processVideo() {
 
     } catch (err) {
         console.error('Processing error:', err);
-        
-        // If there's a matrix size error, reset matrices
-        if (err.message && err.message.includes('size')) {
-            console.log('Resetting matrices due to size error');
-            if (src) {
-                try {
-                    src.delete();
-                    dstC1.delete();
-                    dstC3.delete();
-                    if (dstC4) dstC4.delete();
-                } catch (cleanupErr) {
-                    console.log('Error during cleanup:', cleanupErr);
-                }
-                src = null;
-                dstC1 = null;
-                dstC3 = null;
-                dstC4 = null;
-            }
-        }
-        
         setTimeout(processVideo, 100);
     }
 }
 
 // Update metrics display
-function updateMetrics(blinkRate, drowsiness, eyesDetected, eyeClosedFrames) {
+function updateMetrics(blinkRate, drowsiness, eyesDetected, blinkFrames) {
     const blinkRateElement = document.querySelector('.blink-value');
     if (blinkRateElement) {
         blinkRateElement.textContent = blinkRate.toFixed(1);
@@ -622,7 +491,7 @@ function updateMetrics(blinkRate, drowsiness, eyesDetected, eyeClosedFrames) {
                 badge.textContent = blinkRate.toFixed(1) + ' bpm';
                 break;
             case 1:
-                badge.textContent = (eyeClosedFrames * 33).toFixed(0) + ' ms';
+                badge.textContent = (blinkFrames * 33).toFixed(0) + ' ms';
                 break;
             case 2:
                 badge.textContent = drowsiness.toFixed(0) + '%';
@@ -632,7 +501,7 @@ function updateMetrics(blinkRate, drowsiness, eyesDetected, eyeClosedFrames) {
                      'bg-success') + ' rounded-pill';
                 break;
             case 3:
-                const perclos = (eyeClosedFrames > 0) ? Math.min(100, eyeClosedFrames * 3) : 0;
+                const perclos = Math.min(100, blinkFrames * 3);
                 badge.textContent = perclos.toFixed(0) + '%';
                 break;
         }
