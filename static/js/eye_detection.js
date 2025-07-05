@@ -114,20 +114,38 @@ function startCamera() {
             video.addEventListener('loadedmetadata', function() {
                 console.log('Video metadata loaded:', video.videoWidth, 'x', video.videoHeight);
 
-                // Update canvas size to match video
-                canvasOutput.width = video.videoWidth || 640;
-                canvasOutput.height = video.videoHeight || 480;
+                // Wait for video to be fully ready
+                const checkVideoReady = () => {
+                    if (video.readyState >= 2 && video.videoWidth > 0 && video.videoHeight > 0) {
+                        // Update canvas size to match video
+                        canvasOutput.width = video.videoWidth;
+                        canvasOutput.height = video.videoHeight;
 
-                // Initialize or reinitialize matrices with correct dimensions
-                if (src) {
-                    src.delete();
-                    dstC1.delete();
-                    dstC3.delete();
-                    if (dstC4) dstC4.delete();
-                }
+                        // Clean up any existing matrices
+                        if (src) {
+                            try {
+                                src.delete();
+                                dstC1.delete();
+                                dstC3.delete();
+                                if (dstC4) dstC4.delete();
+                                src = null;
+                                dstC1 = null;
+                                dstC3 = null;
+                                dstC4 = null;
+                            } catch (e) {
+                                console.log('Error cleaning up old matrices:', e);
+                            }
+                        }
 
-                updateStatus('Camera connected. Loading models...');
-                loadClassifiers();
+                        updateStatus('Camera connected. Loading models...');
+                        loadClassifiers();
+                    } else {
+                        console.log('Video not ready yet, waiting...', video.readyState, video.videoWidth, video.videoHeight);
+                        setTimeout(checkVideoReady, 100);
+                    }
+                };
+                
+                checkVideoReady();
             }, { once: true });
 
             video.play().then(() => {
@@ -330,32 +348,59 @@ function processVideo() {
     try {
         const begin = Date.now();
 
-        // Ensure video dimensions are valid
-        if (!video.videoWidth || !video.videoHeight) {
+        // Ensure video dimensions are valid and video is ready
+        if (!video.videoWidth || !video.videoHeight || video.readyState < 2) {
             setTimeout(processVideo, 100);
             return;
         }
 
+        // Get actual video dimensions
+        const videoWidth = video.videoWidth;
+        const videoHeight = video.videoHeight;
+
         // Create or recreate matrices if needed
-        if (!src || src.rows !== video.videoHeight || src.cols !== video.videoWidth) {
+        if (!src || src.rows !== videoHeight || src.cols !== videoWidth) {
             // Clean up existing matrices
             if (src) {
-                src.delete();
-                dstC1.delete();
-                dstC3.delete();
-                if (dstC4) dstC4.delete();
+                try {
+                    src.delete();
+                    dstC1.delete();
+                    dstC3.delete();
+                    if (dstC4) dstC4.delete();
+                } catch (e) {
+                    console.log('Error cleaning up matrices:', e);
+                }
             }
 
-            // Create new matrices
-            src = new cv.Mat(video.videoHeight, video.videoWidth, cv.CV_8UC4);
-            dstC1 = new cv.Mat(video.videoHeight, video.videoWidth, cv.CV_8UC1);
-            dstC3 = new cv.Mat(video.videoHeight, video.videoWidth, cv.CV_8UC3);
-            dstC4 = new cv.Mat(video.videoHeight, video.videoWidth, cv.CV_8UC4);
+            try {
+                // Create new matrices with correct dimensions
+                src = new cv.Mat(videoHeight, videoWidth, cv.CV_8UC4);
+                dstC1 = new cv.Mat(videoHeight, videoWidth, cv.CV_8UC1);
+                dstC3 = new cv.Mat(videoHeight, videoWidth, cv.CV_8UC3);
+                dstC4 = new cv.Mat(videoHeight, videoWidth, cv.CV_8UC4);
+                
+                console.log(`Created matrices with dimensions: ${videoWidth}x${videoHeight}`);
+            } catch (e) {
+                console.error('Error creating matrices:', e);
+                setTimeout(processVideo, 100);
+                return;
+            }
         }
 
-        // Capture frame
-        const cap = new cv.VideoCapture(video);
-        cap.read(src);
+        // Capture frame with error handling
+        try {
+            const cap = new cv.VideoCapture(video);
+            cap.read(src);
+        } catch (e) {
+            console.error('Error reading video frame:', e);
+            // Recreate matrices on next iteration
+            if (src) {
+                src.delete();
+                src = null;
+            }
+            setTimeout(processVideo, 100);
+            return;
+        }
 
         // Convert to grayscale
         cv.cvtColor(src, dstC1, cv.COLOR_RGBA2GRAY);
@@ -531,7 +576,27 @@ function processVideo() {
 
     } catch (err) {
         console.error('Processing error:', err);
-        setTimeout(processVideo, 30);
+        
+        // If there's a matrix size error, reset matrices
+        if (err.message && err.message.includes('size')) {
+            console.log('Resetting matrices due to size error');
+            if (src) {
+                try {
+                    src.delete();
+                    dstC1.delete();
+                    dstC3.delete();
+                    if (dstC4) dstC4.delete();
+                } catch (cleanupErr) {
+                    console.log('Error during cleanup:', cleanupErr);
+                }
+                src = null;
+                dstC1 = null;
+                dstC3 = null;
+                dstC4 = null;
+            }
+        }
+        
+        setTimeout(processVideo, 100);
     }
 }
 
