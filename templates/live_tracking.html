@@ -197,28 +197,11 @@
 {% endblock %}
 
 {% block scripts %}
-<!-- OpenCV.js - Load synchronously to ensure proper initialization -->
-<script src="https://docs.opencv.org/4.5.5/opencv.js"></script>
-
-<!-- Eye Detection Script - Load after OpenCV -->
+<!-- Eye Detection Script - Load first -->
 <script src="/static/js/eye_detection.js"></script>
 
-<!-- OpenCV Ready Check -->
-<script>
-// Global function for OpenCV callback
-window.onOpenCvReady = function() {
-    console.log('OpenCV.js loaded via callback');
-    if (typeof onOpenCvReady === 'function') {
-        onOpenCvReady();
-    }
-};
-
-// Additional safety check
-if (typeof cv !== 'undefined') {
-    console.log('OpenCV already loaded');
-    window.onOpenCvReady();
-}
-</script>
+<!-- OpenCV.js - Load with proper callback -->
+<script async src="https://docs.opencv.org/4.5.5/opencv.js" onload="onOpenCvReady();" type="text/javascript"></script>
 
 <script>
     let sessionStartTime = null;

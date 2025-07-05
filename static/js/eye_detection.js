@@ -463,7 +463,14 @@ function updateStatus(message) {
 
 // Handle OpenCV.js loaded event
 function onOpenCvReady() {
+    // Prevent multiple initializations
+    if (isOpenCVInitialized) {
+        console.log('OpenCV already initialized, skipping...');
+        return;
+    }
+    
     console.log('OpenCV.js is ready');
+    isOpenCVInitialized = true;
     
     // Wait a bit for OpenCV to fully initialize
     setTimeout(() => {
@@ -472,8 +479,13 @@ function onOpenCvReady() {
             statusElement.textContent = 'OpenCV.js loaded successfully';
         }
         
-        initElements();
-        setupEventListeners();
+        // Only initialize if not already done
+        if (!video || !canvasOutput) {
+            initElements();
+        }
+        if (!document.querySelector('.tracking-toggle').onclick) {
+            setupEventListeners();
+        }
     }, 100);
 }
 
@@ -510,32 +522,18 @@ function setupEventListeners() {
     }
 }
 
+// Track if OpenCV has been initialized to prevent double initialization
+let isOpenCVInitialized = false;
+
 // Initialize when the page loads
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM loaded, checking for OpenCV...');
+    console.log('DOM loaded, initializing elements...');
+    initElements();
+    setupEventListeners();
     
     // Check if OpenCV is already loaded
-    if (typeof cv !== 'undefined' && cv.Mat) {
+    if (typeof cv !== 'undefined' && cv.Mat && !isOpenCVInitialized) {
         console.log('OpenCV already available');
         onOpenCvReady();
-    } else {
-        console.log('Waiting for OpenCV to load...');
-        // Set up a check every 100ms for OpenCV
-        const checkOpenCV = setInterval(() => {
-            if (typeof cv !== 'undefined' && cv.Mat) {
-                console.log('OpenCV now available');
-                clearInterval(checkOpenCV);
-                onOpenCvReady();
-            }
-        }, 100);
-        
-        // Timeout after 10 seconds
-        setTimeout(() => {
-            clearInterval(checkOpenCV);
-            if (typeof cv === 'undefined') {
-                console.error('OpenCV failed to load within 10 seconds');
-                updateStatus('Failed to load OpenCV. Please refresh the page.');
-            }
-        }, 10000);
     }
 });
