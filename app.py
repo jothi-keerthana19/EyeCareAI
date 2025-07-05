@@ -177,7 +177,7 @@ def analytics():
     current_metrics = eye_health_data.get_current_metrics()
     health_insights = eye_health_data.get_health_insights()
     
-    return render_template('analytics.html',
+    return render_template('analytics_simple.html',
                          current_metrics=current_metrics,
                          health_insights=health_insights)
 
