@@ -130,6 +130,36 @@ EyeCare AI is a web-based application that monitors eye health in real-time usin
   - Real-time data updates to reports and analytics
   - Enhanced MediaPipe Face Mesh integration
   - Visual indicators for both eyes (OPEN/CLOSED labels)
+- **Advanced Accessibility Features**: Comprehensive eye-based interaction system with:
+  - Hands-free navigation using eye tracking and dwell-time controls
+  - Calibration system for accurate gaze detection
+  - Customizable sensitivity and dwell time settings
+  - Visual feedback with gaze cursor and progress indicators
+  - Support for all interactive elements (buttons, links, forms)
+- **Interactive Eye Strain Risk Game**: Gamified health monitoring with:
+  - Multiple challenge types (blink rate, focus, breaks, posture)
+  - Scoring system with points, levels, and achievements
+  - Real-time feedback on eye health performance
+  - Progress tracking and statistics
+  - Power-ups and rewards for healthy behaviors
+- **Emoji-Based Mood Correlation**: Smart mood tracking with:
+  - 8 different mood options with emoji selection
+  - Automatic correlation analysis between mood and eye health
+  - Personalized insights and recommendations
+  - Visual charts showing mood-health patterns
+  - Proactive health suggestions based on emotional state
+- **Advanced Gaze UI Navigation**: Intelligent interface control with:
+  - Screen zone navigation (scroll, back, menu, center click)
+  - Gesture pattern recognition for shortcuts
+  - Real-time gaze heatmap visualization
+  - Customizable navigation zones and sensitivity
+  - Smart smoothing algorithms for accurate tracking
+- **Comprehensive Alert System**: Fully customizable notifications with:
+  - Multiple sensitivity profiles (Conservative, Balanced, Strict, Custom)
+  - Individual alert type configuration (threshold, frequency, style)
+  - Alert history tracking and analytics
+  - Testing functionality for all alert types
+  - Visual, audio, and priority-based notification system
 
 ## User Preferences
 

@@ -1,0 +1,459 @@
+{% extends "layout.html" %}
+
+{% block title %}Advanced Features{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="mb-4">🚀 Advanced EyeCare AI Features</h1>
+            <p class="lead">Experience cutting-edge eye health technology with comprehensive accessibility, gaming, and intelligent monitoring.</p>
+        </div>
+    </div>
+
+    <!-- Feature Overview Cards -->
+    <div class="row mb-5">
+        <div class="col-md-4 mb-3">
+            <div class="card feature-card h-100">
+                <div class="card-body text-center">
+                    <div class="feature-icon">👁️</div>
+                    <h5 class="card-title">Eye-Based Interaction</h5>
+                    <p class="card-text">Navigate hands-free using eye tracking with calibration and dwell-time controls.</p>
+                    <button class="btn btn-primary btn-sm" id="toggleEyeInteraction">Enable Eye Control</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-3">
+            <div class="card feature-card h-100">
+                <div class="card-body text-center">
+                    <div class="feature-icon">🎮</div>
+                    <h5 class="card-title">Eye Strain Risk Game</h5>
+                    <p class="card-text">Gamified challenges to improve eye health with achievements and scoring.</p>
+                    <button class="btn btn-success btn-sm" id="startEyeGame">Start Game</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-3">
+            <div class="card feature-card h-100">
+                <div class="card-body text-center">
+                    <div class="feature-icon">😊</div>
+                    <h5 class="card-title">Mood Correlation</h5>
+                    <p class="card-text">Track how your mood affects eye health with emoji-based feedback.</p>
+                    <button class="btn btn-info btn-sm" id="showMoodWidget">Check Mood</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-5">
+        <div class="col-md-6 mb-3">
+            <div class="card feature-card h-100">
+                <div class="card-body text-center">
+                    <div class="feature-icon">🎯</div>
+                    <h5 class="card-title">Advanced Gaze UI Navigation</h5>
+                    <p class="card-text">Intelligent gaze zones with gesture recognition and heatmap visualization.</p>
+                    <button class="btn btn-warning btn-sm" id="enableGazeUI">Enable Gaze UI</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-3">
+            <div class="card feature-card h-100">
+                <div class="card-body text-center">
+                    <div class="feature-icon">🚨</div>
+                    <h5 class="card-title">Smart Alert System</h5>
+                    <p class="card-text">Customizable alerts with sensitivity profiles and detailed analytics.</p>
+                    <button class="btn btn-danger btn-sm" id="openAlertPanel">Configure Alerts</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Live Feature Status -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">🔴 Live Feature Status</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <div class="status-item">
+                                <div class="status-indicator" id="eyeInteractionStatus">●</div>
+                                <span>Eye Interaction</span>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="status-item">
+                                <div class="status-indicator" id="gameStatus">●</div>
+                                <span>Eye Strain Game</span>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="status-item">
+                                <div class="status-indicator" id="moodStatus">●</div>
+                                <span>Mood Tracking</span>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="status-item">
+                                <div class="status-indicator" id="gazeUIStatus">●</div>
+                                <span>Gaze UI Navigation</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feature Tutorials -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">📖 Quick Start Tutorials</h5>
+                </div>
+                <div class="card-body">
+                    <div class="accordion" id="tutorialAccordion">
+                        <!-- Eye Interaction Tutorial -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="eyeInteractionTutorial">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEyeInteraction">
+                                    👁️ Eye-Based Interaction Setup
+                                </button>
+                            </h2>
+                            <div id="collapseEyeInteraction" class="accordion-collapse collapse" data-bs-parent="#tutorialAccordion">
+                                <div class="accordion-body">
+                                    <ol>
+                                        <li><strong>Calibration:</strong> Click "Calibrate" in the accessibility panel (top-right)</li>
+                                        <li><strong>Look & Dwell:</strong> Look at each calibration point and hold your gaze</li>
+                                        <li><strong>Enable Tracking:</strong> Turn on "Eye Tracking" after calibration</li>
+                                        <li><strong>Navigation:</strong> Look at buttons and links for 2 seconds to click them</li>
+                                        <li><strong>Adjust Settings:</strong> Change dwell time and sensitivity as needed</li>
+                                    </ol>
+                                    <div class="alert alert-info">
+                                        <strong>Tip:</strong> Start with a 2-second dwell time and adjust based on comfort.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Game Tutorial -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="gameTutorial">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseGame">
+                                    🎮 Eye Strain Risk Game Guide
+                                </button>
+                            </h2>
+                            <div id="collapseGame" class="accordion-collapse collapse" data-bs-parent="#tutorialAccordion">
+                                <div class="accordion-body">
+                                    <ol>
+                                        <li><strong>Start Game:</strong> Click "Start Game" to begin your first challenge</li>
+                                        <li><strong>Follow Instructions:</strong> Each challenge has specific eye health targets</li>
+                                        <li><strong>Earn Points:</strong> Complete challenges to score points and level up</li>
+                                        <li><strong>Achievements:</strong> Unlock badges for consistent healthy habits</li>
+                                        <li><strong>Track Progress:</strong> Monitor your improvement over time</li>
+                                    </ol>
+                                    <div class="alert alert-success">
+                                        <strong>Challenges Include:</strong> Blink rate control, focus maintenance, break compliance, and posture monitoring.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Mood Correlation Tutorial -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="moodTutorial">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMood">
+                                    😊 Mood & Eye Health Correlation
+                                </button>
+                            </h2>
+                            <div id="collapseMood" class="accordion-collapse collapse" data-bs-parent="#tutorialAccordion">
+                                <div class="accordion-body">
+                                    <ol>
+                                        <li><strong>Mood Check:</strong> Widget appears every 2 hours asking how you feel</li>
+                                        <li><strong>Select Emoji:</strong> Choose from 8 different mood options</li>
+                                        <li><strong>View Insights:</strong> Dashboard shows correlations between mood and eye metrics</li>
+                                        <li><strong>Track Patterns:</strong> Discover which moods lead to better eye health</li>
+                                        <li><strong>Get Recommendations:</strong> Receive personalized tips based on patterns</li>
+                                    </ol>
+                                    <div class="alert alert-warning">
+                                        <strong>Note:</strong> Data helps identify stress/tiredness patterns affecting your eyes.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Gaze UI Tutorial -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="gazeUITutorial">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseGazeUI">
+                                    🎯 Advanced Gaze UI Navigation
+                                </button>
+                            </h2>
+                            <div id="collapseGazeUI" class="accordion-collapse collapse" data-bs-parent="#tutorialAccordion">
+                                <div class="accordion-body">
+                                    <ol>
+                                        <li><strong>Enable Gaze UI:</strong> Click the eye control button (top-right)</li>
+                                        <li><strong>Navigation Zones:</strong> Look at screen edges to scroll or navigate</li>
+                                        <li><strong>Gesture Shortcuts:</strong> Use gaze patterns for quick navigation</li>
+                                        <li><strong>Heatmap:</strong> See where you look most often</li>
+                                        <li><strong>Customize:</strong> Adjust sensitivity and dwell times</li>
+                                    </ol>
+                                    <div class="alert alert-primary">
+                                        <strong>Zones:</strong> Top/Bottom = Scroll, Left = Back, Right = Menu, Center = Click
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Alert System Tutorial -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="alertTutorial">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAlert">
+                                    🚨 Smart Alert Configuration
+                                </button>
+                            </h2>
+                            <div id="collapseAlert" class="accordion-collapse collapse" data-bs-parent="#tutorialAccordion">
+                                <div class="accordion-body">
+                                    <ol>
+                                        <li><strong>Choose Profile:</strong> Select Conservative, Balanced, Strict, or Custom</li>
+                                        <li><strong>Customize Alerts:</strong> Fine-tune individual alert types and thresholds</li>
+                                        <li><strong>Test Alerts:</strong> Use the testing area to preview notifications</li>
+                                        <li><strong>View History:</strong> Analyze your alert patterns and frequency</li>
+                                        <li><strong>Adjust Sensitivity:</strong> Modify based on your preferences and needs</li>
+                                    </ol>
+                                    <div class="alert alert-info">
+                                        <strong>Profiles:</strong> Conservative = fewer alerts, Strict = maximum health monitoring
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Integration Status -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">⚡ System Integration</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Active Components</h6>
+                            <ul class="list-unstyled">
+                                <li id="analyticsIntegration">📊 Eye Health Analytics: <span class="status-text">Loading...</span></li>
+                                <li id="reminderIntegration">⏰ Rest Reminder System: <span class="status-text">Loading...</span></li>
+                                <li id="trackingIntegration">🔍 Enhanced Eye Tracking: <span class="status-text">Loading...</span></li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Advanced Features</h6>
+                            <ul class="list-unstyled">
+                                <li id="interactionIntegration">🤲 Eye Interaction System: <span class="status-text">Loading...</span></li>
+                                <li id="gameIntegration">🎯 Strain Risk Game: <span class="status-text">Loading...</span></li>
+                                <li id="moodIntegration">😊 Mood Correlation: <span class="status-text">Loading...</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.feature-card {
+    border: none;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+}
+
+.feature-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.status-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.status-indicator {
+    font-size: 1.2rem;
+    color: #6c757d;
+}
+
+.status-indicator.active {
+    color: #28a745;
+}
+
+.status-indicator.inactive {
+    color: #dc3545;
+}
+
+.status-text {
+    font-weight: 500;
+}
+
+.accordion-button {
+    font-weight: 500;
+}
+
+.alert {
+    margin-top: 1rem;
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Check system integration status
+    checkSystemIntegration();
+    
+    // Setup feature buttons
+    setupFeatureButtons();
+    
+    // Update status indicators periodically
+    setInterval(updateStatusIndicators, 5000);
+});
+
+function checkSystemIntegration() {
+    // Analytics System
+    const analyticsStatus = typeof eyeHealthAnalytics !== 'undefined' && eyeHealthAnalytics;
+    updateIntegrationStatus('analyticsIntegration', analyticsStatus);
+    
+    // Reminder System
+    const reminderStatus = typeof restReminderSystem !== 'undefined' && restReminderSystem;
+    updateIntegrationStatus('reminderIntegration', reminderStatus);
+    
+    // Eye Tracking
+    const trackingStatus = typeof currentGazeDirection !== 'undefined';
+    updateIntegrationStatus('trackingIntegration', trackingStatus);
+    
+    // Eye Interaction
+    const interactionStatus = typeof eyeInteraction !== 'undefined' && eyeInteraction;
+    updateIntegrationStatus('interactionIntegration', interactionStatus);
+    
+    // Game System
+    const gameStatus = typeof eyeStrainGame !== 'undefined' && eyeStrainGame;
+    updateIntegrationStatus('gameIntegration', gameStatus);
+    
+    // Mood System
+    const moodStatus = typeof moodEyeHealth !== 'undefined' && moodEyeHealth;
+    updateIntegrationStatus('moodIntegration', moodStatus);
+}
+
+function updateIntegrationStatus(elementId, isActive) {
+    const element = document.getElementById(elementId);
+    const statusText = element.querySelector('.status-text');
+    
+    if (isActive) {
+        statusText.textContent = 'Active';
+        statusText.style.color = '#28a745';
+    } else {
+        statusText.textContent = 'Inactive';
+        statusText.style.color = '#dc3545';
+    }
+}
+
+function setupFeatureButtons() {
+    // Eye Interaction Toggle
+    document.getElementById('toggleEyeInteraction').addEventListener('click', function() {
+        if (typeof eyeInteraction !== 'undefined') {
+            eyeInteraction.toggleEyeTracking();
+            this.textContent = eyeInteraction.isActive ? 'Disable Eye Control' : 'Enable Eye Control';
+        } else {
+            alert('Eye interaction system not available. Please go to Live Tracking page first.');
+        }
+    });
+    
+    // Game Start
+    document.getElementById('startEyeGame').addEventListener('click', function() {
+        if (typeof eyeStrainGame !== 'undefined') {
+            eyeStrainGame.startGame();
+            this.textContent = 'Game Started!';
+            setTimeout(() => {
+                this.textContent = 'Start Game';
+            }, 3000);
+        } else {
+            alert('Eye strain game not available. Please refresh the page.');
+        }
+    });
+    
+    // Mood Widget
+    document.getElementById('showMoodWidget').addEventListener('click', function() {
+        if (typeof moodEyeHealth !== 'undefined') {
+            moodEyeHealth.showMoodWidget();
+        } else {
+            alert('Mood correlation system not available. Please refresh the page.');
+        }
+    });
+    
+    // Gaze UI
+    document.getElementById('enableGazeUI').addEventListener('click', function() {
+        if (typeof advancedGazeUI !== 'undefined') {
+            advancedGazeUI.toggleGazeUI();
+            this.textContent = advancedGazeUI.isActive ? 'Disable Gaze UI' : 'Enable Gaze UI';
+        } else {
+            alert('Advanced gaze UI not available. Please refresh the page.');
+        }
+    });
+    
+    // Alert Panel
+    document.getElementById('openAlertPanel').addEventListener('click', function() {
+        if (typeof alertController !== 'undefined') {
+            // Show the alert control panel
+            const panel = document.querySelector('.alert-control-panel');
+            if (panel) {
+                panel.scrollIntoView({ behavior: 'smooth' });
+            }
+        } else {
+            alert('Alert control system not available. Please refresh the page.');
+        }
+    });
+}
+
+function updateStatusIndicators() {
+    // Eye Interaction Status
+    const eyeInteractionActive = typeof eyeInteraction !== 'undefined' && eyeInteraction && eyeInteraction.isActive;
+    updateStatusIndicator('eyeInteractionStatus', eyeInteractionActive);
+    
+    // Game Status
+    const gameActive = typeof eyeStrainGame !== 'undefined' && eyeStrainGame && eyeStrainGame.gameActive;
+    updateStatusIndicator('gameStatus', gameActive);
+    
+    // Mood Status
+    const moodActive = typeof moodEyeHealth !== 'undefined' && moodEyeHealth;
+    updateStatusIndicator('moodStatus', moodActive);
+    
+    // Gaze UI Status
+    const gazeUIActive = typeof advancedGazeUI !== 'undefined' && advancedGazeUI && advancedGazeUI.isActive;
+    updateStatusIndicator('gazeUIStatus', gazeUIActive);
+}
+
+function updateStatusIndicator(elementId, isActive) {
+    const indicator = document.getElementById(elementId);
+    if (indicator) {
+        indicator.className = `status-indicator ${isActive ? 'active' : 'inactive'}`;
+        indicator.style.color = isActive ? '#28a745' : '#dc3545';
+    }
+}
+</script>
+{% endblock %}

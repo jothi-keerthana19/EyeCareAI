@@ -185,6 +185,11 @@ def analytics():
 def settings():
     return render_template('settings.html')
 
+@app.route('/advanced-features')
+def advanced_features():
+    """Display advanced features demonstration page"""
+    return render_template('advanced_features.html')
+
 @app.route('/api/blink-data')
 def api_blink_data():
     return jsonify(eye_health_data.blink_data)
