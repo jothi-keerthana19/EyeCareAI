@@ -18,17 +18,25 @@ class RestReminderSystem {
         this.audioContext = null;
         this.audioEnabled = false; // Disable audio for now due to browser issues
         this.reminderTimer = null; // Store the interval timer
-        
+        this.initialized = false;
+
         this.init();
         // this.initAudio(); // Disabled for now
     }
-    
+
     init() {
+        // Prevent multiple initializations
+        if (this.initialized) {
+            console.log('Rest reminder system already initialized');
+            return;
+        }
+
         this.createReminderElements();
         this.startReminderTimer();
+        this.initialized = true;
         console.log('Rest reminder system initialized');
     }
-    
+
     initAudio() {
         try {
             this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -38,17 +46,17 @@ class RestReminderSystem {
             this.audioEnabled = false;
         }
     }
-    
+
     playNotificationSound(type = 'gentle') {
         if (!this.audioEnabled || !this.audioContext) return;
-        
+
         try {
             const oscillator = this.audioContext.createOscillator();
             const gainNode = this.audioContext.createGain();
-            
+
             oscillator.connect(gainNode);
             gainNode.connect(this.audioContext.destination);
-            
+
             // Different sounds for different notification types
             switch (type) {
                 case 'gentle':
@@ -59,7 +67,7 @@ class RestReminderSystem {
                     gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.5);
                     oscillator.type = 'sine';
                     break;
-                    
+
                 case 'reminder':
                     // Two-tone chime
                     oscillator.frequency.setValueAtTime(523, this.audioContext.currentTime); // C5
@@ -68,7 +76,7 @@ class RestReminderSystem {
                     gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.4);
                     oscillator.type = 'triangle';
                     break;
-                    
+
                 case 'urgent':
                     // Alert tone
                     oscillator.frequency.setValueAtTime(880, this.audioContext.currentTime);
@@ -77,15 +85,15 @@ class RestReminderSystem {
                     oscillator.type = 'square';
                     break;
             }
-            
+
             oscillator.start(this.audioContext.currentTime);
             oscillator.stop(this.audioContext.currentTime + 0.5);
-            
+
         } catch (error) {
             console.warn('Error playing notification sound:', error);
         }
     }
-    
+
     createReminderElements() {
         // Create gentle reminder overlay
         this.reminderElement = document.createElement('div');
@@ -114,7 +122,7 @@ class RestReminderSystem {
                 </div>
             </div>
         `;
-        
+
         // Create subtle pulse indicator
         this.pulseElement = document.createElement('div');
         this.pulseElement.id = 'restPulseIndicator';
@@ -125,17 +133,17 @@ class RestReminderSystem {
                 <i class="bi bi-eye"></i>
             </div>
         `;
-        
+
         // Add CSS styles
         this.addStyles();
-        
+
         // Append to body (hidden initially)
         document.body.appendChild(this.reminderElement);
         document.body.appendChild(this.pulseElement);
-        
+
         this.breathingElement = document.getElementById('breathingCircle');
     }
-    
+
     addStyles() {
         const style = document.createElement('style');
         style.textContent = `
@@ -153,12 +161,12 @@ class RestReminderSystem {
                 opacity: 0;
                 transition: opacity 0.5s ease-in-out;
             }
-            
+
             .rest-reminder-overlay.show {
                 display: flex;
                 opacity: 1;
             }
-            
+
             .reminder-content {
                 background: white;
                 border-radius: 20px;
@@ -168,7 +176,7 @@ class RestReminderSystem {
                 box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
                 animation: slideInUp 0.5s ease-out;
             }
-            
+
             .breathing-circle {
                 width: 100px;
                 height: 100px;
@@ -178,7 +186,7 @@ class RestReminderSystem {
                 position: relative;
                 animation: breathe 4s ease-in-out infinite;
             }
-            
+
             .breathing-inner {
                 width: 60px;
                 height: 60px;
@@ -190,19 +198,19 @@ class RestReminderSystem {
                 transform: translate(-50%, -50%);
                 animation: breatheInner 4s ease-in-out infinite;
             }
-            
+
             .reminder-text h3 {
                 color: #333;
                 margin-bottom: 0.5rem;
                 font-weight: 600;
             }
-            
+
             .reminder-text p {
                 color: #666;
                 margin-bottom: 1rem;
                 font-size: 0.9rem;
             }
-            
+
             .reminder-timer {
                 font-size: 2rem;
                 font-weight: bold;
@@ -210,14 +218,14 @@ class RestReminderSystem {
                 margin-bottom: 1.5rem;
                 font-family: 'Monaco', 'Menlo', monospace;
             }
-            
+
             .reminder-actions {
                 display: flex;
                 gap: 0.5rem;
                 justify-content: center;
                 flex-wrap: wrap;
             }
-            
+
             .rest-pulse-indicator {
                 position: fixed;
                 top: 20px;
@@ -228,12 +236,12 @@ class RestReminderSystem {
                 z-index: 1000;
                 cursor: pointer;
             }
-            
+
             .rest-pulse-indicator.show {
                 display: block;
                 animation: fadeIn 0.5s ease-in;
             }
-            
+
             .pulse-ring {
                 position: absolute;
                 width: 100%;
@@ -242,7 +250,7 @@ class RestReminderSystem {
                 border-radius: 50%;
                 animation: pulse 2s ease-in-out infinite;
             }
-            
+
             .pulse-dot {
                 position: absolute;
                 top: 50%;
@@ -258,17 +266,17 @@ class RestReminderSystem {
                 color: white;
                 font-size: 14px;
             }
-            
+
             @keyframes breathe {
                 0%, 100% { transform: scale(1); }
                 50% { transform: scale(1.1); }
             }
-            
+
             @keyframes breatheInner {
                 0%, 100% { transform: translate(-50%, -50%) scale(1); }
                 50% { transform: translate(-50%, -50%) scale(0.8); }
             }
-            
+
             @keyframes pulse {
                 0% {
                     transform: scale(1);
@@ -279,7 +287,7 @@ class RestReminderSystem {
                     opacity: 0;
                 }
             }
-            
+
             @keyframes slideInUp {
                 from {
                     transform: translateY(100px);
@@ -290,12 +298,12 @@ class RestReminderSystem {
                     opacity: 1;
                 }
             }
-            
+
             @keyframes fadeIn {
                 from { opacity: 0; }
                 to { opacity: 1; }
             }
-            
+
             /* Gentle screen tint for eye strain relief */
             .eye-strain-overlay {
                 position: fixed;
@@ -309,29 +317,29 @@ class RestReminderSystem {
                 opacity: 0;
                 transition: opacity 1s ease-in-out;
             }
-            
+
             .eye-strain-overlay.active {
                 opacity: 1;
             }
-            
+
             /* Responsive design */
             @media (max-width: 768px) {
                 .reminder-content {
                     margin: 1rem;
                     padding: 1.5rem;
                 }
-                
+
                 .reminder-actions {
                     flex-direction: column;
                 }
-                
+
                 .rest-pulse-indicator {
                     top: 10px;
                     right: 10px;
                     width: 40px;
                     height: 40px;
                 }
-                
+
                 .pulse-dot {
                     width: 25px;
                     height: 25px;
@@ -341,41 +349,46 @@ class RestReminderSystem {
         `;
         document.head.appendChild(style);
     }
-    
+
     startReminderTimer() {
         // Clear any existing timer to prevent duplicates
         if (this.reminderTimer) {
             clearInterval(this.reminderTimer);
         }
-        
+
         // Get user's reminder setting from localStorage or use default
         const userReminderSetting = localStorage.getItem('reminderInterval');
         if (userReminderSetting) {
             this.reminderInterval = parseInt(userReminderSetting) * 60000; // Convert minutes to milliseconds
             console.log(`Using custom reminder interval: ${userReminderSetting} minutes`);
         }
-        
+
         // Set initial time
         this.lastReminderTime = Date.now();
-        
+
+        // Prevent multiple timers
+        if (this.reminderTimer) {
+            clearInterval(this.reminderTimer);
+        }
+
         // Check every minute if it's time for a reminder
         this.reminderTimer = setInterval(() => {
             const now = Date.now();
             const timeSinceLastReminder = now - this.lastReminderTime;
-            
+
             if (timeSinceLastReminder >= this.reminderInterval && !this.isActive) {
                 this.showGentleReminder();
                 this.lastReminderTime = now;
             }
         }, 60000); // Check every minute
-        
+
         console.log(`Rest reminder timer started - ${this.reminderInterval / 60000} minutes interval`);
     }
-    
+
     showGentleReminder() {
         // Show subtle pulse indicator first
         this.showPulseIndicator();
-        
+
         // After 30 seconds, show full reminder if not acknowledged
         setTimeout(() => {
             if (this.pulseElement.classList.contains('show')) {
@@ -383,57 +396,57 @@ class RestReminderSystem {
             }
         }, 30000);
     }
-    
+
     showPulseIndicator() {
         this.pulseElement.classList.add('show');
-        
+
         // Play gentle notification sound
         this.playNotificationSound('gentle');
-        
+
         // Add click handler to show full reminder
         this.pulseElement.onclick = () => {
             this.showFullReminder();
         };
-        
+
         // Auto-hide after 60 seconds if not clicked
         setTimeout(() => {
             this.hidePulseIndicator();
         }, 60000);
     }
-    
+
     hidePulseIndicator() {
         this.pulseElement.classList.remove('show');
         this.pulseElement.onclick = null;
     }
-    
+
     showFullReminder() {
         this.hidePulseIndicator();
         this.reminderElement.classList.add('show');
         this.isActive = true;
-        
+
         // Play reminder sound
         this.playNotificationSound('reminder');
-        
+
         // Record reminder in analytics
         if (typeof eyeHealthAnalytics !== 'undefined' && eyeHealthAnalytics) {
             eyeHealthAnalytics.recordAlert('rest_reminder', 'Time for a break - 20-20-20 rule');
         }
-        
+
         // Show breathing animation
         this.startBreathingAnimation();
     }
-    
+
     startBreathingAnimation() {
         if (this.breathingElement) {
             this.breathingElement.style.animationDuration = '4s';
         }
     }
-    
+
     startBreakTimer() {
         this.hideFullReminder();
         this.startTwentySecondBreak();
     }
-    
+
     startTwentySecondBreak() {
         // Create break timer overlay
         const breakOverlay = document.createElement('div');
@@ -454,37 +467,37 @@ class RestReminderSystem {
                 </button>
             </div>
         `;
-        
+
         document.body.appendChild(breakOverlay);
-        
+
         // Add gentle eye strain relief overlay
         this.addEyeStrainRelief();
-        
+
         // Start countdown
         let timeLeft = 20;
         const timerElement = breakOverlay.querySelector('#breakTimer');
-        
+
         const countdown = setInterval(() => {
             timeLeft--;
             timerElement.textContent = timeLeft;
-            
+
             if (timeLeft <= 0) {
                 clearInterval(countdown);
                 this.completeBreak(breakOverlay);
             }
         }, 1000);
     }
-    
+
     addEyeStrainRelief() {
         const strainOverlay = document.createElement('div');
         strainOverlay.className = 'eye-strain-overlay';
         document.body.appendChild(strainOverlay);
-        
+
         // Gradually apply tint
         setTimeout(() => {
             strainOverlay.classList.add('active');
         }, 100);
-        
+
         // Remove after break
         setTimeout(() => {
             strainOverlay.classList.remove('active');
@@ -493,7 +506,7 @@ class RestReminderSystem {
             }, 1000);
         }, 20000);
     }
-    
+
     completeBreak(breakOverlay) {
         breakOverlay.innerHTML = `
             <div class="reminder-content">
@@ -505,26 +518,26 @@ class RestReminderSystem {
                 </button>
             </div>
         `;
-        
+
         // Auto-close after 3 seconds
         setTimeout(() => {
             breakOverlay.remove();
         }, 3000);
-        
+
         // Record break completion
         if (typeof eyeHealthAnalytics !== 'undefined' && eyeHealthAnalytics) {
             eyeHealthAnalytics.healthMetrics.breaksTaken++;
         }
     }
-    
+
     snoozeReminder() {
         this.hideFullReminder();
         this.lastReminderTime = Date.now() + (5 * 60 * 1000); // Add 5 minutes
-        
+
         // Show snooze confirmation
         this.showSnoozeConfirmation();
     }
-    
+
     showSnoozeConfirmation() {
         const notification = document.createElement('div');
         notification.className = 'alert alert-info';
@@ -540,58 +553,58 @@ class RestReminderSystem {
             <i class="bi bi-clock"></i> Reminder snoozed for 5 minutes
             <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
         `;
-        
+
         document.body.appendChild(notification);
-        
+
         // Auto-remove after 3 seconds
         setTimeout(() => {
             notification.remove();
         }, 3000);
     }
-    
+
     dismissReminder() {
         this.hideFullReminder();
         this.lastReminderTime = Date.now();
     }
-    
+
     hideFullReminder() {
         this.reminderElement.classList.remove('show');
         this.isActive = false;
     }
-    
+
     // Method to manually trigger reminder (for testing)
     triggerReminder() {
         this.showGentleReminder();
     }
-    
+
     // Method to adjust reminder interval
     setReminderInterval(minutes) {
         this.reminderInterval = minutes * 60 * 1000;
         localStorage.setItem('reminderInterval', minutes);
-        
+
         // Reset the timer with new interval
         this.lastReminderTime = Date.now();
         this.startReminderTimer();
-        
+
         console.log(`Reminder interval set to ${minutes} minutes`);
     }
-    
+
     // Cleanup method
     destroy() {
         if (this.reminderTimer) {
             clearInterval(this.reminderTimer);
             this.reminderTimer = null;
         }
-        
+
         if (this.reminderElement && this.reminderElement.parentNode) {
             this.reminderElement.parentNode.removeChild(this.reminderElement);
         }
-        
+
         if (this.pulseElement && this.pulseElement.parentNode) {
             this.pulseElement.parentNode.removeChild(this.pulseElement);
         }
     }
-    
+
     // Integration with eye tracking for smart reminders
     onEyeStrainDetected(level) {
         if (level > 70 && !this.isActive) {
@@ -599,7 +612,7 @@ class RestReminderSystem {
             this.showPulseIndicator();
         }
     }
-    
+
     onDrowsinessDetected(level) {
         if (level > 80 && !this.isActive) {
             // Urgent break suggestion for high drowsiness
