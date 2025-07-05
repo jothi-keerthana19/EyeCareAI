@@ -322,20 +322,27 @@ function processVideo() {
                 // Draw eye rectangle
                 cv.rectangle(src, eyePoint1, eyePoint2, [255, 0, 0, 255], 2);
 
-                // Extract eye region
+                // Extract eye region for analysis
                 const eyeROI = dstC1.roi(new cv.Rect(face.x + eye.x, face.y + eye.y, eye.width, eye.height));
 
-                // Analyze eye state
+                // Calculate Eye Aspect Ratio (EAR) for better blink detection
+                const eyeAspectRatio = eye.height / eye.width;
                 const mean = cv.mean(eyeROI);
                 const brightness = mean[0];
 
-                if (eye.height > eye.width * 0.35 && brightness > 50) {
+                // Improved eye state detection
+                // EAR threshold: typically 0.2-0.25 for closed eyes, 0.3+ for open eyes
+                const isEyeOpen = eyeAspectRatio > 0.25 && brightness > 45;
+                
+                if (isEyeOpen) {
                     eyesOpen++;
-                    cv.putText(src, "Open", new cv.Point(face.x + eye.x, face.y + eye.y - 5),
-                              cv.FONT_HERSHEY_SIMPLEX, 0.5, [0, 255, 0, 255], 1);
+                    cv.putText(src, `Open (${eyeAspectRatio.toFixed(2)})`, 
+                              new cv.Point(face.x + eye.x, face.y + eye.y - 5),
+                              cv.FONT_HERSHEY_SIMPLEX, 0.4, [0, 255, 0, 255], 1);
                 } else {
-                    cv.putText(src, "Closed", new cv.Point(face.x + eye.x, face.y + eye.y - 5),
-                              cv.FONT_HERSHEY_SIMPLEX, 0.5, [255, 0, 0, 255], 1);
+                    cv.putText(src, `Closed (${eyeAspectRatio.toFixed(2)})`, 
+                              new cv.Point(face.x + eye.x, face.y + eye.y - 5),
+                              cv.FONT_HERSHEY_SIMPLEX, 0.4, [255, 0, 0, 255], 1);
                 }
 
                 eyeROI.delete();
@@ -345,27 +352,48 @@ function processVideo() {
             eyes.delete();
         }
 
-        // Update blink detection
-        const currentEyeState = (eyesOpen >= eyesDetected * 0.5) ? 'open' : 'closed';
+        // Enhanced blink detection logic
+        const currentEyeState = (eyesDetected > 0 && eyesOpen >= Math.ceil(eyesDetected * 0.5)) ? 'open' : 'closed';
 
         if (currentEyeState === 'closed' && lastEyeState === 'open') {
+            // Eyes just closed - start tracking closure
             eyeClosedFrames = 1;
+            console.log('Eyes closed - blink started');
         } else if (currentEyeState === 'closed') {
+            // Eyes still closed - increment frame count
             eyeClosedFrames++;
         } else if (currentEyeState === 'open' && lastEyeState === 'closed') {
-            if (eyeClosedFrames >= 1 && eyeClosedFrames <= 7) {
+            // Eyes opened - check if it was a valid blink
+            const blinkDurationMs = eyeClosedFrames * (1000/30); // Assuming 30 FPS
+            
+            // Valid blink: 50ms to 500ms duration (1-15 frames at 30fps)
+            if (eyeClosedFrames >= 2 && eyeClosedFrames <= 15) {
                 blinkCount++;
-                const blinkTime = Date.now();
-                const timeDiff = blinkTime - lastBlinkTime;
-
-                if (timeDiff > 0) {
-                    const blinkRate = 60000 / timeDiff;
-                    blinkRates.push(blinkRate);
-                    if (blinkRates.length > 10) blinkRates.shift();
+                const currentTime = Date.now();
+                const timeSinceLastBlink = currentTime - lastBlinkTime;
+                
+                console.log(`Blink detected! Count: ${blinkCount}, Duration: ${blinkDurationMs}ms`);
+                
+                // Calculate blink rate (only if enough time has passed)
+                if (timeSinceLastBlink > 500) { // At least 500ms between blinks
+                    const instantBlinkRate = 60000 / timeSinceLastBlink; // blinks per minute
+                    blinkRates.push(instantBlinkRate);
+                    
+                    // Keep only recent blink rates (last 20 blinks)
+                    if (blinkRates.length > 20) {
+                        blinkRates.shift();
+                    }
                 }
-
-                lastBlinkTime = blinkTime;
+                
+                lastBlinkTime = currentTime;
+                
+                // Visual feedback for detected blink
+                cv.putText(src, `BLINK! #${blinkCount}`, new cv.Point(20, 80),
+                          cv.FONT_HERSHEY_SIMPLEX, 0.7, [0, 255, 255, 255], 2);
+            } else if (eyeClosedFrames > 15) {
+                console.log(`Long eye closure detected: ${blinkDurationMs}ms`);
             }
+            
             eyeClosedFrames = 0;
         }
 
@@ -375,6 +403,16 @@ function processVideo() {
         let avgBlinkRate = blinkRates.length > 0 
             ? blinkRates.reduce((a, b) => a + b, 0) / blinkRates.length 
             : 0;
+
+        // Add debug information to canvas
+        cv.putText(src, `Eyes Detected: ${eyesDetected}`, new cv.Point(20, 120),
+                  cv.FONT_HERSHEY_SIMPLEX, 0.5, [255, 255, 255, 255], 1);
+        cv.putText(src, `Eyes Open: ${eyesOpen}`, new cv.Point(20, 140),
+                  cv.FONT_HERSHEY_SIMPLEX, 0.5, [255, 255, 255, 255], 1);
+        cv.putText(src, `Eye State: ${currentEyeState}`, new cv.Point(20, 160),
+                  cv.FONT_HERSHEY_SIMPLEX, 0.5, [255, 255, 255, 255], 1);
+        cv.putText(src, `Closed Frames: ${eyeClosedFrames}`, new cv.Point(20, 180),
+                  cv.FONT_HERSHEY_SIMPLEX, 0.5, [255, 255, 255, 255], 1);
 
         if (avgBlinkRate < 10 || eyeClosedFrames > 15) {
             drowsinessLevel = Math.min(100, drowsinessLevel + 5);
@@ -445,6 +483,12 @@ function updateMetrics(blinkRate, drowsiness, eyesDetected, eyeClosedFrames) {
                 break;
         }
     });
+
+    // Update total blink count display
+    const totalBlinksElement = document.querySelector('.total-blinks');
+    if (totalBlinksElement) {
+        totalBlinksElement.textContent = blinkCount;
+    }
 }
 
 // Show notification
