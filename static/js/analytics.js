@@ -1,6 +1,11 @@
 // Eye Health Analytics Module
 // Provides comprehensive analysis of eye health metrics
 
+// Prevent multiple declarations
+if (typeof window.EyeHealthAnalytics !== 'undefined') {
+    console.log('EyeHealthAnalytics already exists, skipping redeclaration');
+} else {
+
 class EyeHealthAnalytics {
     constructor() {
         this.sessionData = {
@@ -13,7 +18,7 @@ class EyeHealthAnalytics {
             exerciseCompletion: [],
             gazeData: []
         };
-        
+
         this.healthMetrics = {
             avgBlinkRate: 0,
             blinkRateVariability: 0,
@@ -23,7 +28,7 @@ class EyeHealthAnalytics {
             breaksTaken: 0,
             exercisesCompleted: 0
         };
-        
+
         this.healthThresholds = {
             normalBlinkRate: { min: 12, max: 20 },
             lowBlinkRate: { min: 8, max: 12 },
@@ -32,11 +37,11 @@ class EyeHealthAnalytics {
             maxScreenTime: 8 * 60 * 60 * 1000, // 8 hours in milliseconds
             breakInterval: 20 * 60 * 1000 // 20 minutes in milliseconds
         };
-        
+
         this.loadStoredData();
         this.startAnalytics();
     }
-    
+
     // Load stored data from localStorage
     loadStoredData() {
         const stored = localStorage.getItem('eyeHealthHistory');
@@ -50,7 +55,7 @@ class EyeHealthAnalytics {
             }
         }
     }
-    
+
     // Save data to localStorage
     saveData() {
         const dataToSave = {
@@ -60,60 +65,60 @@ class EyeHealthAnalytics {
         };
         localStorage.setItem('eyeHealthHistory', JSON.stringify(dataToSave));
     }
-    
+
     // Start analytics collection
     startAnalytics() {
         // Update analytics every 5 seconds
         setInterval(() => {
             this.updateAnalytics();
         }, 5000);
-        
+
         // Save data every minute
         setInterval(() => {
             this.saveData();
         }, 60000);
     }
-    
+
     // Record blink data
     recordBlinkData(blinkRate, timestamp = new Date()) {
         this.sessionData.blinkData.push({
             rate: blinkRate,
             timestamp: timestamp
         });
-        
+
         // Keep only last 100 blink measurements
         if (this.sessionData.blinkData.length > 100) {
             this.sessionData.blinkData.shift();
         }
-        
+
         this.calculateBlinkMetrics();
     }
-    
+
     // Record drowsiness data
     recordDrowsinessData(drowsinessLevel, timestamp = new Date()) {
         this.sessionData.drowsinessData.push({
             level: drowsinessLevel,
             timestamp: timestamp
         });
-        
+
         // Keep only last 100 drowsiness measurements
         if (this.sessionData.drowsinessData.length > 100) {
             this.sessionData.drowsinessData.shift();
         }
-        
+
         this.calculateDrowsinessMetrics();
     }
-    
+
     // Record screen time
     recordScreenTime(duration, timestamp = new Date()) {
         this.sessionData.screenTimeData.push({
             duration: duration,
             timestamp: timestamp
         });
-        
+
         this.healthMetrics.screenTimeToday += duration;
     }
-    
+
     // Record eye strain event
     recordEyeStrain(severity, cause, timestamp = new Date()) {
         this.sessionData.eyeStrainEvents.push({
@@ -121,10 +126,10 @@ class EyeHealthAnalytics {
             cause: cause,
             timestamp: timestamp
         });
-        
+
         this.calculateEyeStrainLevel();
     }
-    
+
     // Record alert triggered
     recordAlert(type, message, timestamp = new Date()) {
         this.sessionData.alertsTriggered.push({
@@ -133,7 +138,7 @@ class EyeHealthAnalytics {
             timestamp: timestamp
         });
     }
-    
+
     // Record gaze data
     recordGazeData(gazeDirection, timestamp = new Date()) {
         this.sessionData.gazeData.push({
@@ -142,50 +147,50 @@ class EyeHealthAnalytics {
             confidence: gazeDirection.confidence,
             timestamp: timestamp
         });
-        
+
         // Keep only last 100 gaze measurements
         if (this.sessionData.gazeData.length > 100) {
             this.sessionData.gazeData.shift();
         }
     }
-    
+
     // Calculate blink rate metrics
     calculateBlinkMetrics() {
         if (this.sessionData.blinkData.length === 0) return;
-        
+
         const rates = this.sessionData.blinkData.map(d => d.rate);
         this.healthMetrics.avgBlinkRate = rates.reduce((a, b) => a + b, 0) / rates.length;
-        
+
         // Calculate variability (standard deviation)
         const mean = this.healthMetrics.avgBlinkRate;
         const variance = rates.reduce((sum, rate) => sum + Math.pow(rate - mean, 2), 0) / rates.length;
         this.healthMetrics.blinkRateVariability = Math.sqrt(variance);
     }
-    
+
     // Calculate drowsiness metrics
     calculateDrowsinessMetrics() {
         if (this.sessionData.drowsinessData.length === 0) return;
-        
+
         const levels = this.sessionData.drowsinessData.map(d => d.level);
         this.healthMetrics.drowsinessScore = levels.reduce((a, b) => a + b, 0) / levels.length;
     }
-    
+
     // Calculate eye strain level
     calculateEyeStrainLevel() {
         const recentEvents = this.sessionData.eyeStrainEvents.filter(
             event => new Date() - event.timestamp < 60 * 60 * 1000 // Last hour
         );
-        
+
         this.healthMetrics.eyeStrainLevel = Math.min(100, recentEvents.length * 10);
     }
-    
+
     // Update overall analytics
     updateAnalytics() {
         this.calculateBlinkMetrics();
         this.calculateDrowsinessMetrics();
         this.calculateEyeStrainLevel();
     }
-    
+
     // Generate health insights
     generateHealthInsights() {
         const insights = {
@@ -195,7 +200,7 @@ class EyeHealthAnalytics {
             trends: this.getHealthTrends(),
             achievements: this.getAchievements()
         };
-        
+
         // Blink rate insights
         if (this.healthMetrics.avgBlinkRate < this.healthThresholds.normalBlinkRate.min) {
             insights.warnings.push({
@@ -209,7 +214,7 @@ class EyeHealthAnalytics {
                 action: 'Start Eye Exercises'
             });
         }
-        
+
         // Drowsiness insights
         if (this.healthMetrics.drowsinessScore > this.healthThresholds.highDrowsiness) {
             insights.warnings.push({
@@ -223,7 +228,7 @@ class EyeHealthAnalytics {
                 action: 'Schedule Break'
             });
         }
-        
+
         // Screen time insights
         if (this.healthMetrics.screenTimeToday > this.healthThresholds.maxScreenTime) {
             insights.warnings.push({
@@ -237,7 +242,7 @@ class EyeHealthAnalytics {
                 action: 'Set Screen Time Limits'
             });
         }
-        
+
         // Eye strain insights
         if (this.healthMetrics.eyeStrainLevel > 50) {
             insights.warnings.push({
@@ -251,35 +256,35 @@ class EyeHealthAnalytics {
                 action: 'Start 20-20-20 Exercise'
             });
         }
-        
+
         return insights;
     }
-    
+
     // Calculate overall health score (0-100)
     getOverallHealthScore() {
         let score = 100;
-        
+
         // Deduct points for poor blink rate
         if (this.healthMetrics.avgBlinkRate < this.healthThresholds.normalBlinkRate.min) {
             score -= 20;
         }
-        
+
         // Deduct points for high drowsiness
         if (this.healthMetrics.drowsinessScore > this.healthThresholds.moderateDrowsiness) {
             score -= (this.healthMetrics.drowsinessScore - this.healthThresholds.moderateDrowsiness) * 0.5;
         }
-        
+
         // Deduct points for eye strain
         score -= this.healthMetrics.eyeStrainLevel * 0.3;
-        
+
         // Deduct points for excessive screen time
         if (this.healthMetrics.screenTimeToday > this.healthThresholds.maxScreenTime) {
             score -= 15;
         }
-        
+
         return Math.max(0, Math.round(score));
     }
-    
+
     // Get health trends
     getHealthTrends() {
         const trends = {
@@ -287,51 +292,51 @@ class EyeHealthAnalytics {
             drowsiness: this.getTrend(this.sessionData.drowsinessData, 'level'),
             eyeStrain: this.getEyeStrainTrend()
         };
-        
+
         return trends;
     }
-    
+
     // Calculate trend for a specific metric
     getTrend(data, field) {
         if (data.length < 2) return 'stable';
-        
+
         const recent = data.slice(-10); // Last 10 measurements
         const older = data.slice(-20, -10); // Previous 10 measurements
-        
+
         if (older.length === 0) return 'stable';
-        
+
         const recentAvg = recent.reduce((sum, item) => sum + item[field], 0) / recent.length;
         const olderAvg = older.reduce((sum, item) => sum + item[field], 0) / older.length;
-        
+
         const change = ((recentAvg - olderAvg) / olderAvg) * 100;
-        
+
         if (change > 10) return 'increasing';
         if (change < -10) return 'decreasing';
         return 'stable';
     }
-    
+
     // Get eye strain trend
     getEyeStrainTrend() {
         const recentEvents = this.sessionData.eyeStrainEvents.filter(
             event => new Date() - event.timestamp < 60 * 60 * 1000 // Last hour
         );
-        
+
         const olderEvents = this.sessionData.eyeStrainEvents.filter(
             event => {
                 const hoursDiff = (new Date() - event.timestamp) / (60 * 60 * 1000);
                 return hoursDiff >= 1 && hoursDiff < 2; // 1-2 hours ago
             }
         );
-        
+
         if (recentEvents.length > olderEvents.length) return 'increasing';
         if (recentEvents.length < olderEvents.length) return 'decreasing';
         return 'stable';
     }
-    
+
     // Get achievements
     getAchievements() {
         const achievements = [];
-        
+
         // Blink rate achievement
         if (this.healthMetrics.avgBlinkRate >= this.healthThresholds.normalBlinkRate.min && 
             this.healthMetrics.avgBlinkRate <= this.healthThresholds.normalBlinkRate.max) {
@@ -342,7 +347,7 @@ class EyeHealthAnalytics {
                 icon: '👁️'
             });
         }
-        
+
         // Low drowsiness achievement
         if (this.healthMetrics.drowsinessScore < this.healthThresholds.moderateDrowsiness) {
             achievements.push({
@@ -352,7 +357,7 @@ class EyeHealthAnalytics {
                 icon: '⚡'
             });
         }
-        
+
         // Exercise completion achievement
         if (this.healthMetrics.exercisesCompleted >= 3) {
             achievements.push({
@@ -362,10 +367,10 @@ class EyeHealthAnalytics {
                 icon: '🏃‍♂️'
             });
         }
-        
+
         return achievements;
     }
-    
+
     // Get daily summary
     getDailySummary() {
         return {
@@ -381,7 +386,7 @@ class EyeHealthAnalytics {
             overallScore: this.getOverallHealthScore()
         };
     }
-    
+
     // Export analytics data
     exportData() {
         const exportData = {
@@ -391,15 +396,24 @@ class EyeHealthAnalytics {
             summary: this.getDailySummary(),
             exportDate: new Date()
         };
-        
+
         return exportData;
     }
 }
 
-// Initialize analytics when the page loads
-let eyeHealthAnalytics = null;
+} // End of class declaration check
 
-document.addEventListener('DOMContentLoaded', function() {
-    eyeHealthAnalytics = new EyeHealthAnalytics();
-    console.log('Eye Health Analytics initialized');
-});
+// Singleton pattern for analytics
+window.EyeHealthAnalytics = EyeHealthAnalytics;
+
+// Initialize analytics with singleton pattern
+if (!window.eyeHealthAnalytics) {
+    document.addEventListener('DOMContentLoaded', function() {
+        if (!window.eyeHealthAnalytics) {
+            window.eyeHealthAnalytics = new EyeHealthAnalytics();
+            console.log('Eye Health Analytics singleton created');
+        }
+    });
+} else {
+    console.log('Eye Health Analytics already exists, reusing instance');
+}

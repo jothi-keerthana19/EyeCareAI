@@ -1,6 +1,11 @@
 // Gentle Micro-Animation Rest Reminders
 // Provides subtle visual cues for break reminders without being disruptive
 
+// Prevent multiple declarations
+if (typeof window.RestReminderSystem !== 'undefined') {
+    console.log('RestReminderSystem already exists, skipping redeclaration');
+} else {
+
 class RestReminderSystem {
     constructor() {
         this.reminderInterval = 20 * 60 * 1000; // 20 minutes (20-20-20 rule)
@@ -12,6 +17,7 @@ class RestReminderSystem {
         this.pulseElement = null;
         this.audioContext = null;
         this.audioEnabled = false; // Disable audio for now due to browser issues
+        this.reminderTimer = null; // Store the interval timer
         
         this.init();
         // this.initAudio(); // Disabled for now
@@ -337,6 +343,11 @@ class RestReminderSystem {
     }
     
     startReminderTimer() {
+        // Clear any existing timer to prevent duplicates
+        if (this.reminderTimer) {
+            clearInterval(this.reminderTimer);
+        }
+        
         // Get user's reminder setting from localStorage or use default
         const userReminderSetting = localStorage.getItem('reminderInterval');
         if (userReminderSetting) {
@@ -348,11 +359,11 @@ class RestReminderSystem {
         this.lastReminderTime = Date.now();
         
         // Check every minute if it's time for a reminder
-        setInterval(() => {
+        this.reminderTimer = setInterval(() => {
             const now = Date.now();
             const timeSinceLastReminder = now - this.lastReminderTime;
             
-            if (timeSinceLastReminder >= this.reminderInterval) {
+            if (timeSinceLastReminder >= this.reminderInterval && !this.isActive) {
                 this.showGentleReminder();
                 this.lastReminderTime = now;
             }
@@ -556,7 +567,29 @@ class RestReminderSystem {
     // Method to adjust reminder interval
     setReminderInterval(minutes) {
         this.reminderInterval = minutes * 60 * 1000;
+        localStorage.setItem('reminderInterval', minutes);
+        
+        // Reset the timer with new interval
+        this.lastReminderTime = Date.now();
+        this.startReminderTimer();
+        
         console.log(`Reminder interval set to ${minutes} minutes`);
+    }
+    
+    // Cleanup method
+    destroy() {
+        if (this.reminderTimer) {
+            clearInterval(this.reminderTimer);
+            this.reminderTimer = null;
+        }
+        
+        if (this.reminderElement && this.reminderElement.parentNode) {
+            this.reminderElement.parentNode.removeChild(this.reminderElement);
+        }
+        
+        if (this.pulseElement && this.pulseElement.parentNode) {
+            this.pulseElement.parentNode.removeChild(this.pulseElement);
+        }
     }
     
     // Integration with eye tracking for smart reminders
@@ -575,15 +608,23 @@ class RestReminderSystem {
     }
 }
 
-// Initialize rest reminder system
-let restReminders = null;
+} // End of class declaration check
 
-document.addEventListener('DOMContentLoaded', function() {
-    restReminders = new RestReminderSystem();
-    
-    // Make it globally accessible for button clicks
-    window.restReminders = restReminders;
-});
+// Singleton pattern - only create one instance
+window.RestReminderSystem = RestReminderSystem;
+
+// Initialize rest reminder system with singleton pattern
+if (!window.restReminders) {
+    document.addEventListener('DOMContentLoaded', function() {
+        // Ensure only one instance exists
+        if (!window.restReminders) {
+            window.restReminders = new RestReminderSystem();
+            console.log('Rest reminder system singleton created');
+        }
+    });
+} else {
+    console.log('Rest reminder system already exists, reusing instance');
+}
 
 // Export for integration with other modules
 if (typeof module !== 'undefined' && module.exports) {
