@@ -32,12 +32,16 @@ EyeCare AI is a web-based application that monitors eye health in real-time usin
 - **Detection Method**: Uses face mesh landmarks similar to cvzone approach for accurate blink detection
 
 ### 2. Health Analytics (`static/js/analytics.js`)
-- **Purpose**: Comprehensive analysis of eye health metrics
+- **Purpose**: Comprehensive analysis of eye health metrics with real-time insights
 - **Features**:
-  - Session data tracking and storage
-  - Health threshold monitoring
-  - Historical data analysis
-  - Alert system for unhealthy patterns
+  - Overall health score calculation (0-100 scale)
+  - Real-time metrics tracking (blink rate, drowsiness, eye strain)
+  - Personalized health insights and recommendations
+  - Achievement system for healthy habits
+  - Data visualization with interactive charts
+  - Export functionality (JSON, CSV, PDF formats)
+  - Session data tracking with localStorage persistence
+  - Health threshold monitoring and alert generation
 
 ### 3. Flask Application (`app.py`)
 - **Purpose**: Backend API and web server
@@ -98,10 +102,18 @@ EyeCare AI is a web-based application that monitors eye health in real-time usin
 - **Canvas API**: Required for video processing
 - **localStorage**: Required for data persistence
 
-## Changelog
+## Recent Changes
 
-Changelog:
-- July 05, 2025. Initial setup
+### July 05, 2025
+- **Initial Setup**: Created Flask web application with eye tracking functionality
+- **Eye Detection**: Implemented OpenCV.js-based eye tracking with blink detection
+- **Comprehensive Analytics**: Added health analytics system with:
+  - Overall health score calculation
+  - Real-time metrics tracking
+  - Export functionality (JSON, CSV, PDF)
+  - Achievement system
+- **Fixed Eye Detection Issues**: Resolved matrix operation errors and improved face/eye visibility
+- **Export Function Fixes**: Fixed missing exportData function and added proper CSV/PDF export
 
 ## User Preferences
 
