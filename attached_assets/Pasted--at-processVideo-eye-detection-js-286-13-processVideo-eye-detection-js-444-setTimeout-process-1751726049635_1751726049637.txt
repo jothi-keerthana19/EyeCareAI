@@ -1,0 +1,253 @@
+    at processVideo (eye_detection.js:286:13)
+processVideo @ eye_detection.js:444
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445Understand this error
+eye_detection.js:444 Processing error: Error: Bad size of input mat: the size should be same as the video.
+    at Module.VideoCapture.read (opencv.js:30:8590646)
+    at processVideo (eye_detection.js:286:13)
+processVideo @ eye_detection.js:444
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445Understand this error
+eye_detection.js:444 Processing error: Error: Bad size of input mat: the size should be same as the video.
+    at Module.VideoCapture.read (opencv.js:30:8590646)
+    at processVideo (eye_detection.js:286:13)
+processVideo @ eye_detection.js:444
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445Understand this error
+eye_detection.js:444 Processing error: Error: Bad size of input mat: the size should be same as the video.
+    at Module.VideoCapture.read (opencv.js:30:8590646)
+    at processVideo (eye_detection.js:286:13)
+processVideo @ eye_detection.js:444
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445
+setTimeout
+processVideo @ eye_detection.js:445Understand this error
+882eye_detection.js:444 Processing error: Error: Bad size of input mat: the size should be same as the video.
+    at Module.VideoCapture.read (opencv.js:30:8590646)
+    at processVideo (eye_detection.js:286:13)
