@@ -50,34 +50,66 @@ function initElements() {
 function startCamera() {
     if (!streaming) {
         updateStatus('Requesting camera access...');
-        navigator.mediaDevices.getUserMedia({ video: true, audio: false })
-            .then(function(stream) {
-                video.srcObject = stream;
-                video.play();
+        
+        // Check if getUserMedia is supported
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            updateStatus('Camera access not supported in this browser');
+            return;
+        }
+        
+        navigator.mediaDevices.getUserMedia({ 
+            video: { 
+                width: { ideal: 640 }, 
+                height: { ideal: 480 },
+                facingMode: 'user' 
+            }, 
+            audio: false 
+        })
+        .then(function(stream) {
+            video.srcObject = stream;
+            
+            // Add event listener before play to ensure it fires
+            video.addEventListener('loadedmetadata', function() {
+                console.log('Video metadata loaded:', video.videoWidth, 'x', video.videoHeight);
+                
+                // Update canvas size to match video
+                canvasOutput.width = video.videoWidth || 640;
+                canvasOutput.height = video.videoHeight || 480;
+
+                // Initialize or reinitialize matrices with correct dimensions
+                if (src) {
+                    src.delete();
+                    dstC1.delete();
+                    dstC3.delete();
+                    if (dstC4) dstC4.delete();
+                }
+
                 updateStatus('Camera connected. Loading models...');
+                loadClassifiers();
+            }, { once: true });
+            
+            video.play().then(() => {
                 streaming = true;
-
-                // Wait for video metadata to load
-                video.addEventListener('loadedmetadata', function() {
-                    // Update canvas size to match video
-                    canvasOutput.width = video.videoWidth;
-                    canvasOutput.height = video.videoHeight;
-
-                    // Initialize or reinitialize matrices with correct dimensions
-                    if (src) {
-                        src.delete();
-                        dstC1.delete();
-                        dstC3.delete();
-                        if (dstC4) dstC4.delete();
-                    }
-
-                    loadClassifiers();
-                });
-            })
-            .catch(function(err) {
-                console.error('An error occurred: ' + err);
-                updateStatus('Camera error: ' + err.message);
+                console.log('Video started successfully');
+            }).catch(err => {
+                console.error('Error starting video:', err);
+                updateStatus('Error starting video: ' + err.message);
             });
+        })
+        .catch(function(err) {
+            console.error('Camera access error:', err);
+            let errorMessage = 'Camera access denied';
+            
+            if (err.name === 'NotFoundError') {
+                errorMessage = 'No camera found';
+            } else if (err.name === 'NotAllowedError') {
+                errorMessage = 'Camera access denied. Please allow camera access and refresh.';
+            } else if (err.name === 'NotReadableError') {
+                errorMessage = 'Camera is being used by another application';
+            }
+            
+            updateStatus(errorMessage);
+        });
     } else {
         stopCamera();
     }
@@ -131,28 +163,54 @@ function stopCamera() {
 function loadClassifiers() {
     updateStatus('Loading face classifier...');
 
-    // Load the face classifier with correct path
-    faceClassifier = new cv.CascadeClassifier();
-    const faceCascadePath = 'haarcascade_frontalface_alt2.xml';
-    fetch(faceCascadePath)
-        .then(response => response.arrayBuffer())
-        .then(buffer => {
-            faceClassifier.load(buffer);
+    try {
+        // Load the face classifier
+        faceClassifier = new cv.CascadeClassifier();
+        faceClassifier.load('haarcascade_frontalface_alt2');
 
-            // Load the eye classifier
-            eyeClassifier = new cv.CascadeClassifier();
-            const eyeCascadePath = '/static/models/haarcascade_eye.xml';
-            return fetch(eyeCascadePath).then(response => response.arrayBuffer());
-        })
-        .then(buffer => {
-            eyeClassifier.load(buffer);
-            updateStatus('Classifiers loaded. Starting detection...');
+        updateStatus('Loading eye classifier...');
+
+        // Load the eye classifier
+        eyeClassifier = new cv.CascadeClassifier();
+        eyeClassifier.load('haarcascade_eye');
+
+        updateStatus('Classifiers loaded. Starting detection...');
+
+        // Start processing
+        setTimeout(processVideo, 0);
+    } catch (error) {
+        console.error('Error loading classifiers:', error);
+        updateStatus('Error loading classifiers. Using backup method...');
+        
+        // Try alternative loading method
+        loadClassifiersAlternative();
+    }
+}
+
+// Alternative method for loading classifiers
+function loadClassifiersAlternative() {
+    updateStatus('Loading classifiers (alternative method)...');
+    
+    // Create classifiers without explicit loading
+    faceClassifier = new cv.CascadeClassifier();
+    eyeClassifier = new cv.CascadeClassifier();
+    
+    // Load using the embedded OpenCV data
+    if (typeof cv !== 'undefined' && cv.FS) {
+        try {
+            // These are built into OpenCV.js
+            faceClassifier.load('haarcascade_frontalface_alt2');
+            eyeClassifier.load('haarcascade_eye');
+            
+            updateStatus('Classifiers loaded successfully. Starting detection...');
             setTimeout(processVideo, 0);
-        })
-        .catch(error => {
-            console.error('Error loading classifiers:', error);
-            updateStatus('Error loading classifiers. Please refresh the page.');
-        });
+        } catch (e) {
+            console.error('Alternative loading failed:', e);
+            updateStatus('Failed to load classifiers. Camera detection unavailable.');
+        }
+    } else {
+        updateStatus('OpenCV not fully loaded. Please refresh the page.');
+    }
 }
 
 // Process video frames for eye detection
@@ -405,11 +463,22 @@ function updateStatus(message) {
 
 // Handle OpenCV.js loaded event
 function onOpenCvReady() {
-    document.getElementById('status').textContent = 'OpenCV.js loaded';
-    console.log('OpenCV.js loaded');
+    console.log('OpenCV.js is ready');
+    
+    // Wait a bit for OpenCV to fully initialize
+    setTimeout(() => {
+        const statusElement = document.getElementById('status');
+        if (statusElement) {
+            statusElement.textContent = 'OpenCV.js loaded successfully';
+        }
+        
+        initElements();
+        setupEventListeners();
+    }, 100);
+}
 
-    initElements();
-
+// Setup event listeners
+function setupEventListeners() {
     const trackingButton = document.querySelector('.tracking-toggle');
     if (trackingButton) {
         trackingButton.addEventListener('click', function() {
@@ -435,14 +504,38 @@ function onOpenCvReady() {
         });
     }
 
+    // Request notification permission
     if ("Notification" in window && Notification.permission !== "granted" && Notification.permission !== "denied") {
         Notification.requestPermission();
     }
 }
 
 // Initialize when the page loads
-window.onload = function() {
-    if (typeof cv !== 'undefined') {
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, checking for OpenCV...');
+    
+    // Check if OpenCV is already loaded
+    if (typeof cv !== 'undefined' && cv.Mat) {
+        console.log('OpenCV already available');
         onOpenCvReady();
+    } else {
+        console.log('Waiting for OpenCV to load...');
+        // Set up a check every 100ms for OpenCV
+        const checkOpenCV = setInterval(() => {
+            if (typeof cv !== 'undefined' && cv.Mat) {
+                console.log('OpenCV now available');
+                clearInterval(checkOpenCV);
+                onOpenCvReady();
+            }
+        }, 100);
+        
+        // Timeout after 10 seconds
+        setTimeout(() => {
+            clearInterval(checkOpenCV);
+            if (typeof cv === 'undefined') {
+                console.error('OpenCV failed to load within 10 seconds');
+                updateStatus('Failed to load OpenCV. Please refresh the page.');
+            }
+        }, 10000);
     }
-};
+});
