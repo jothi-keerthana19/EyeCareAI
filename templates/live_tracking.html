@@ -200,8 +200,8 @@
 <!-- Eye Detection Script - Load first -->
 <script src="/static/js/eye_detection.js"></script>
 
-<!-- OpenCV.js - Load with proper callback -->
-<script async src="https://docs.opencv.org/4.5.5/opencv.js" onload="onOpenCvReady();" type="text/javascript"></script>
+<!-- OpenCV.js - Load without onload callback to prevent double-calling -->
+<script async src="https://docs.opencv.org/4.5.5/opencv.js" type="text/javascript"></script>
 
 <script>
     let sessionStartTime = null;

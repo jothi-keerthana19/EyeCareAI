@@ -50,13 +50,13 @@ function initElements() {
 function startCamera() {
     if (!streaming) {
         updateStatus('Requesting camera access...');
-        
+
         // Check if getUserMedia is supported
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
             updateStatus('Camera access not supported in this browser');
             return;
         }
-        
+
         navigator.mediaDevices.getUserMedia({ 
             video: { 
                 width: { ideal: 640 }, 
@@ -67,11 +67,11 @@ function startCamera() {
         })
         .then(function(stream) {
             video.srcObject = stream;
-            
+
             // Add event listener before play to ensure it fires
             video.addEventListener('loadedmetadata', function() {
                 console.log('Video metadata loaded:', video.videoWidth, 'x', video.videoHeight);
-                
+
                 // Update canvas size to match video
                 canvasOutput.width = video.videoWidth || 640;
                 canvasOutput.height = video.videoHeight || 480;
@@ -87,7 +87,7 @@ function startCamera() {
                 updateStatus('Camera connected. Loading models...');
                 loadClassifiers();
             }, { once: true });
-            
+
             video.play().then(() => {
                 streaming = true;
                 console.log('Video started successfully');
@@ -99,7 +99,7 @@ function startCamera() {
         .catch(function(err) {
             console.error('Camera access error:', err);
             let errorMessage = 'Camera access denied';
-            
+
             if (err.name === 'NotFoundError') {
                 errorMessage = 'No camera found';
             } else if (err.name === 'NotAllowedError') {
@@ -107,7 +107,7 @@ function startCamera() {
             } else if (err.name === 'NotReadableError') {
                 errorMessage = 'Camera is being used by another application';
             }
-            
+
             updateStatus(errorMessage);
         });
     } else {
@@ -181,7 +181,7 @@ function loadClassifiers() {
     } catch (error) {
         console.error('Error loading classifiers:', error);
         updateStatus('Error loading classifiers. Using backup method...');
-        
+
         // Try alternative loading method
         loadClassifiersAlternative();
     }
@@ -190,18 +190,18 @@ function loadClassifiers() {
 // Alternative method for loading classifiers
 function loadClassifiersAlternative() {
     updateStatus('Loading classifiers (alternative method)...');
-    
+
     // Create classifiers without explicit loading
     faceClassifier = new cv.CascadeClassifier();
     eyeClassifier = new cv.CascadeClassifier();
-    
+
     // Load using the embedded OpenCV data
     if (typeof cv !== 'undefined' && cv.FS) {
         try {
             // These are built into OpenCV.js
             faceClassifier.load('haarcascade_frontalface_alt2');
             eyeClassifier.load('haarcascade_eye');
-            
+
             updateStatus('Classifiers loaded successfully. Starting detection...');
             setTimeout(processVideo, 0);
         } catch (e) {
@@ -461,6 +461,9 @@ function updateStatus(message) {
     }
 }
 
+// Track if OpenCV has been initialized to prevent double initialization
+let isOpenCVInitialized = false;
+
 // Handle OpenCV.js loaded event
 function onOpenCvReady() {
     // Prevent multiple initializations
@@ -468,72 +471,42 @@ function onOpenCvReady() {
         console.log('OpenCV already initialized, skipping...');
         return;
     }
-    
+
     console.log('OpenCV.js is ready');
     isOpenCVInitialized = true;
-    
+
     // Wait a bit for OpenCV to fully initialize
     setTimeout(() => {
         const statusElement = document.getElementById('status');
         if (statusElement) {
             statusElement.textContent = 'OpenCV.js loaded successfully';
         }
-        
-        // Only initialize if not already done
-        if (!video || !canvasOutput) {
-            initElements();
-        }
-        if (!document.querySelector('.tracking-toggle').onclick) {
-            setupEventListeners();
-        }
+
+        console.log('OpenCV initialization complete');
     }, 100);
 }
-
-// Setup event listeners
-function setupEventListeners() {
-    const trackingButton = document.querySelector('.tracking-toggle');
-    if (trackingButton) {
-        trackingButton.addEventListener('click', function() {
-            if (!streaming) {
-                startCamera();
-                this.innerHTML = '<i class="bi bi-pause-circle"></i> Pause Tracking';
-
-                const statusBadge = document.querySelector('.tracking-status');
-                if (statusBadge) {
-                    statusBadge.className = 'badge bg-success tracking-status';
-                    statusBadge.textContent = 'Tracking Active';
-                }
-            } else {
-                stopCamera();
-                this.innerHTML = '<i class="bi bi-play-circle"></i> Start Tracking';
-
-                const statusBadge = document.querySelector('.tracking-status');
-                if (statusBadge) {
-                    statusBadge.className = 'badge bg-secondary tracking-status';
-                    statusBadge.textContent = 'Tracking Stopped';
-                }
-            }
-        });
-    }
-
-    // Request notification permission
-    if ("Notification" in window && Notification.permission !== "granted" && Notification.permission !== "denied") {
-        Notification.requestPermission();
-    }
-}
-
-// Track if OpenCV has been initialized to prevent double initialization
-let isOpenCVInitialized = false;
 
 // Initialize when the page loads
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM loaded, initializing elements...');
     initElements();
     setupEventListeners();
-    
-    // Check if OpenCV is already loaded
-    if (typeof cv !== 'undefined' && cv.Mat && !isOpenCVInitialized) {
-        console.log('OpenCV already available');
-        onOpenCvReady();
-    }
+
+    // Set up OpenCV loading check
+    const checkOpenCVInterval = setInterval(() => {
+        if (typeof cv !== 'undefined' && cv.Mat && !isOpenCVInitialized) {
+            console.log('OpenCV now available');
+            clearInterval(checkOpenCVInterval);
+            onOpenCvReady();
+        }
+    }, 100);
+
+    // Timeout after 10 seconds
+    setTimeout(() => {
+        clearInterval(checkOpenCVInterval);
+        if (!isOpenCVInitialized) {
+            console.error('OpenCV failed to load within 10 seconds');
+            updateStatus('Failed to load OpenCV. Please refresh the page.');
+        }
+    }, 10000);
 });
