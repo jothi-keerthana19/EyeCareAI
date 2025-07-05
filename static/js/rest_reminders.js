@@ -10,14 +10,74 @@ class RestReminderSystem {
         this.reminderElement = null;
         this.breathingElement = null;
         this.pulseElement = null;
+        this.audioContext = null;
+        this.audioEnabled = true;
         
         this.init();
+        this.initAudio();
     }
     
     init() {
         this.createReminderElements();
         this.startReminderTimer();
         console.log('Rest reminder system initialized');
+    }
+    
+    initAudio() {
+        try {
+            this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            console.log('Audio context initialized');
+        } catch (error) {
+            console.warn('Audio not available:', error);
+            this.audioEnabled = false;
+        }
+    }
+    
+    playNotificationSound(type = 'gentle') {
+        if (!this.audioEnabled || !this.audioContext) return;
+        
+        try {
+            const oscillator = this.audioContext.createOscillator();
+            const gainNode = this.audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(this.audioContext.destinationNode);
+            
+            // Different sounds for different notification types
+            switch (type) {
+                case 'gentle':
+                    // Soft bell sound
+                    oscillator.frequency.setValueAtTime(800, this.audioContext.currentTime);
+                    oscillator.frequency.exponentialRampToValueAtTime(400, this.audioContext.currentTime + 0.5);
+                    gainNode.gain.setValueAtTime(0.1, this.audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.5);
+                    oscillator.type = 'sine';
+                    break;
+                    
+                case 'reminder':
+                    // Two-tone chime
+                    oscillator.frequency.setValueAtTime(523, this.audioContext.currentTime); // C5
+                    oscillator.frequency.setValueAtTime(659, this.audioContext.currentTime + 0.2); // E5
+                    gainNode.gain.setValueAtTime(0.15, this.audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.4);
+                    oscillator.type = 'triangle';
+                    break;
+                    
+                case 'urgent':
+                    // Alert tone
+                    oscillator.frequency.setValueAtTime(880, this.audioContext.currentTime);
+                    gainNode.gain.setValueAtTime(0.2, this.audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.3);
+                    oscillator.type = 'square';
+                    break;
+            }
+            
+            oscillator.start(this.audioContext.currentTime);
+            oscillator.stop(this.audioContext.currentTime + 0.5);
+            
+        } catch (error) {
+            console.warn('Error playing notification sound:', error);
+        }
     }
     
     createReminderElements() {
@@ -303,6 +363,9 @@ class RestReminderSystem {
     showPulseIndicator() {
         this.pulseElement.classList.add('show');
         
+        // Play gentle notification sound
+        this.playNotificationSound('gentle');
+        
         // Add click handler to show full reminder
         this.pulseElement.onclick = () => {
             this.showFullReminder();
@@ -323,6 +386,9 @@ class RestReminderSystem {
         this.hidePulseIndicator();
         this.reminderElement.classList.add('show');
         this.isActive = true;
+        
+        // Play reminder sound
+        this.playNotificationSound('reminder');
         
         // Record reminder in analytics
         if (typeof eyeHealthAnalytics !== 'undefined' && eyeHealthAnalytics) {

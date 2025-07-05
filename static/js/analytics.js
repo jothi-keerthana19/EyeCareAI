@@ -10,7 +10,8 @@ class EyeHealthAnalytics {
             screenTimeData: [],
             eyeStrainEvents: [],
             alertsTriggered: [],
-            exerciseCompletion: []
+            exerciseCompletion: [],
+            gazeData: []
         };
         
         this.healthMetrics = {
@@ -131,6 +132,21 @@ class EyeHealthAnalytics {
             message: message,
             timestamp: timestamp
         });
+    }
+    
+    // Record gaze data
+    recordGazeData(gazeDirection, timestamp = new Date()) {
+        this.sessionData.gazeData.push({
+            x: gazeDirection.x,
+            y: gazeDirection.y,
+            confidence: gazeDirection.confidence,
+            timestamp: timestamp
+        });
+        
+        // Keep only last 100 gaze measurements
+        if (this.sessionData.gazeData.length > 100) {
+            this.sessionData.gazeData.shift();
+        }
     }
     
     // Calculate blink rate metrics

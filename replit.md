@@ -121,6 +121,15 @@ EyeCare AI is a web-based application that monitors eye health in real-time usin
   - Customizable reminder intervals (10-60 minutes)
   - Eye strain relief overlay during breaks
   - Integration with eye tracking for smart reminders
+  - Audio notifications with different sound types (gentle, reminder, urgent)
+- **Enhanced Eye Detection System**: Upgraded to comprehensive both-eye tracking with:
+  - Individual left and right eye aspect ratio calculation
+  - Both-eye blink detection and counting
+  - Gaze direction tracking and visualization
+  - Background processing support with web workers
+  - Real-time data updates to reports and analytics
+  - Enhanced MediaPipe Face Mesh integration
+  - Visual indicators for both eyes (OPEN/CLOSED labels)
 
 ## User Preferences
 
