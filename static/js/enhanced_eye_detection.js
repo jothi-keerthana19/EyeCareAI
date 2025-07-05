@@ -272,7 +272,7 @@ function calculateGazeDirection(landmarks) {
     const noseTip = landmarks[gazePoints.noseTip];
     
     if (!leftEyeCenter || !rightEyeCenter || !noseTip) {
-        return { x: 0, y: 0, confidence: 0 };
+        return { x: 0, y: 0, confidence: 0, zone: 'none', warning: null };
     }
     
     // Calculate eye center
@@ -294,7 +294,87 @@ function calculateGazeDirection(landmarks) {
         confidence: 0.8
     };
     
+    // Add useful zone detection and health warnings
+    const zones = getScreenZones(gazeDirection.x, gazeDirection.y);
+    gazeDirection.zone = zones.current;
+    gazeDirection.zoneName = zones.name;
+    gazeDirection.warning = zones.warning;
+    gazeDirection.timeInZone = zones.timeInZone;
+    
     return gazeDirection;
+}
+
+function getScreenZones(x, y) {
+    // Track time spent in each zone for health monitoring
+    if (!window.gazeZoneTracker) {
+        window.gazeZoneTracker = {
+            center: { time: 0, lastEnter: 0 },
+            up: { time: 0, lastEnter: 0 },
+            down: { time: 0, lastEnter: 0 },
+            left: { time: 0, lastEnter: 0 },
+            right: { time: 0, lastEnter: 0 },
+            currentZone: 'center',
+            lastZoneChange: Date.now(),
+            warnings: []
+        };
+    }
+    
+    const tracker = window.gazeZoneTracker;
+    const now = Date.now();
+    
+    // Determine current zone based on gaze direction
+    let currentZone = 'center';
+    let zoneName = 'Center Screen';
+    let warning = null;
+    
+    if (y < -15) {
+        currentZone = 'up';
+        zoneName = 'Looking Up';
+    } else if (y > 15) {
+        currentZone = 'down';
+        zoneName = 'Looking Down';
+        warning = 'Neck strain risk - screen too low';
+    } else if (x < -20) {
+        currentZone = 'left';
+        zoneName = 'Looking Left';
+    } else if (x > 20) {
+        currentZone = 'right';
+        zoneName = 'Looking Right';
+    }
+    
+    // Update time tracking
+    if (currentZone !== tracker.currentZone) {
+        // Update previous zone time
+        if (tracker[tracker.currentZone].lastEnter > 0) {
+            tracker[tracker.currentZone].time += now - tracker[tracker.currentZone].lastEnter;
+        }
+        
+        // Switch to new zone
+        tracker.currentZone = currentZone;
+        tracker[currentZone].lastEnter = now;
+        tracker.lastZoneChange = now;
+    }
+    
+    // Calculate time in current zone
+    const timeInZone = tracker[currentZone].lastEnter > 0 ? 
+        now - tracker[currentZone].lastEnter : 0;
+    
+    // Generate health warnings
+    if (timeInZone > 30000) { // 30 seconds
+        if (currentZone === 'down') {
+            warning = 'Looking down too long - raise your screen';
+        } else if (currentZone === 'up') {
+            warning = 'Looking up too long - lower your screen';
+        }
+    }
+    
+    return {
+        current: currentZone,
+        name: zoneName,
+        warning: warning,
+        timeInZone: timeInZone,
+        totalTime: tracker[currentZone].time + timeInZone
+    };
 }
 
 // Process video frames with both eyes and gaze tracking
@@ -507,19 +587,39 @@ function drawVisualization(landmarks, leftEyeClosed, rightEyeClosed, overallRati
         canvasOutputCtx.fillText(rightEyeClosed ? 'CLOSED' : 'OPEN', rightLeft.x - 30, rightUpper.y - 10);
     }
     
-    // Draw gaze indicator
+    // Draw enhanced gaze indicator with useful information
     if (currentGazeDirection.confidence > 0.5) {
         const gazeX = canvasOutput.width / 2 + (currentGazeDirection.x * 2);
         const gazeY = canvasOutput.height / 2 + (currentGazeDirection.y * 2);
         
-        canvasOutputCtx.fillStyle = 'rgba(255, 255, 0, 0.7)';
+        // Color code based on zone and warnings
+        let gazeColor = 'rgba(255, 255, 0, 0.7)'; // Default yellow
+        if (currentGazeDirection.zone === 'down') gazeColor = 'rgba(255, 165, 0, 0.7)'; // Orange for down
+        if (currentGazeDirection.warning) gazeColor = 'rgba(255, 0, 0, 0.7)'; // Red for warnings
+        
+        canvasOutputCtx.fillStyle = gazeColor;
         canvasOutputCtx.beginPath();
-        canvasOutputCtx.arc(gazeX, gazeY, 8, 0, 2 * Math.PI);
+        canvasOutputCtx.arc(gazeX, gazeY, 10, 0, 2 * Math.PI);
         canvasOutputCtx.fill();
         
-        canvasOutputCtx.fillStyle = 'yellow';
-        canvasOutputCtx.font = '10px Arial';
-        canvasOutputCtx.fillText('GAZE', gazeX - 15, gazeY - 12);
+        // Draw zone name
+        canvasOutputCtx.fillStyle = 'white';
+        canvasOutputCtx.font = '12px Arial';
+        canvasOutputCtx.fillText(currentGazeDirection.zoneName || 'Center', gazeX - 25, gazeY - 15);
+        
+        // Draw warning if present
+        if (currentGazeDirection.warning) {
+            canvasOutputCtx.fillStyle = 'red';
+            canvasOutputCtx.font = '10px Arial';
+            canvasOutputCtx.fillText('⚠️ ' + currentGazeDirection.warning, 10, canvasOutput.height - 30);
+        }
+        
+        // Draw time in zone if significant
+        if (currentGazeDirection.timeInZone > 5000) {
+            canvasOutputCtx.fillStyle = 'orange';
+            canvasOutputCtx.font = '10px Arial';
+            canvasOutputCtx.fillText(`${Math.round(currentGazeDirection.timeInZone / 1000)}s in zone`, 10, canvasOutput.height - 10);
+        }
     }
     
     // Draw metrics

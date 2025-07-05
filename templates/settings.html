@@ -43,7 +43,7 @@
                 
                 <div class="settings-option">
                     <label for="breakInterval" class="form-label">Break Reminder Interval</label>
-                    <select class="form-select" id="breakInterval">
+                    <select class="form-select" id="breakInterval" onchange="updateReminderInterval()">
                         <option value="15">Every 15 minutes</option>
                         <option value="20" selected>Every 20 minutes</option>
                         <option value="30">Every 30 minutes</option>
@@ -283,6 +283,42 @@
 
 {% block scripts %}
 <script>
+    // Load saved settings
+    document.addEventListener('DOMContentLoaded', function() {
+        const savedInterval = localStorage.getItem('reminderInterval');
+        if (savedInterval) {
+            document.getElementById('breakInterval').value = savedInterval;
+        }
+    });
+    
+    // Update reminder interval
+    function updateReminderInterval() {
+        const intervalSelect = document.getElementById('breakInterval');
+        const selectedInterval = intervalSelect.value;
+        
+        localStorage.setItem('reminderInterval', selectedInterval);
+        
+        // Show confirmation message
+        const confirmationMessage = document.createElement('div');
+        confirmationMessage.className = 'alert alert-success alert-dismissible fade show mt-2';
+        confirmationMessage.innerHTML = `
+            <strong>Reminder interval updated!</strong> Break reminders will now appear every ${selectedInterval} minutes.
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        const breakIntervalContainer = document.querySelector('.settings-option');
+        breakIntervalContainer.appendChild(confirmationMessage);
+        
+        // Auto-dismiss after 3 seconds
+        setTimeout(() => {
+            if (confirmationMessage.parentNode) {
+                confirmationMessage.remove();
+            }
+        }, 3000);
+        
+        console.log(`Reminder interval set to ${selectedInterval} minutes`);
+    }
+    
     // Handle dark mode toggle
     document.getElementById('darkModeToggle').addEventListener('change', function() {
         if (this.checked) {

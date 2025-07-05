@@ -11,10 +11,10 @@ class RestReminderSystem {
         this.breathingElement = null;
         this.pulseElement = null;
         this.audioContext = null;
-        this.audioEnabled = true;
+        this.audioEnabled = false; // Disable audio for now due to browser issues
         
         this.init();
-        this.initAudio();
+        // this.initAudio(); // Disabled for now
     }
     
     init() {
@@ -41,7 +41,7 @@ class RestReminderSystem {
             const gainNode = this.audioContext.createGain();
             
             oscillator.connect(gainNode);
-            gainNode.connect(this.audioContext.destinationNode);
+            gainNode.connect(this.audioContext.destination);
             
             // Different sounds for different notification types
             switch (type) {
@@ -337,6 +337,17 @@ class RestReminderSystem {
     }
     
     startReminderTimer() {
+        // Get user's reminder setting from localStorage or use default
+        const userReminderSetting = localStorage.getItem('reminderInterval');
+        if (userReminderSetting) {
+            this.reminderInterval = parseInt(userReminderSetting) * 60000; // Convert minutes to milliseconds
+            console.log(`Using custom reminder interval: ${userReminderSetting} minutes`);
+        }
+        
+        // Set initial time
+        this.lastReminderTime = Date.now();
+        
+        // Check every minute if it's time for a reminder
         setInterval(() => {
             const now = Date.now();
             const timeSinceLastReminder = now - this.lastReminderTime;
@@ -346,6 +357,8 @@ class RestReminderSystem {
                 this.lastReminderTime = now;
             }
         }, 60000); // Check every minute
+        
+        console.log(`Rest reminder timer started - ${this.reminderInterval / 60000} minutes interval`);
     }
     
     showGentleReminder() {
