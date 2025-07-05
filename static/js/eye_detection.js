@@ -25,6 +25,12 @@ let lastAlertTime = 0;
 // Track if OpenCV has been initialized to prevent double initialization
 let isOpenCVInitialized = false;
 
+// Motion detection variables for fallback blink detection
+let previousFrame = null;
+let motionThreshold = 50;
+let brightnessSamples = [];
+let lastMotionTime = 0;
+
 // Initialize the video and canvas elements
 function initElements() {
     video = document.getElementById('videoInput');
@@ -175,6 +181,14 @@ function stopCamera() {
             dstC3 = null;
             dstC4 = null;
         }
+        
+        // Clean up motion detection resources
+        if (previousFrame) {
+            previousFrame.delete();
+            previousFrame = null;
+        }
+        brightnessSamples = [];
+        lastMotionTime = 0;
 
         updateStatus('Camera stopped');
 
@@ -249,6 +263,64 @@ function loadClassifiersAlternative() {
     }
 }
 
+// Detect blinks using motion and brightness changes when face is not visible
+function detectBlinkFromMotion(grayFrame) {
+    try {
+        // Calculate overall brightness
+        const mean = cv.mean(grayFrame);
+        const brightness = mean[0];
+        
+        // Store brightness samples for trend analysis
+        brightnessSamples.push(brightness);
+        if (brightnessSamples.length > 10) {
+            brightnessSamples.shift();
+        }
+        
+        // Motion detection
+        if (previousFrame) {
+            const diff = new cv.Mat();
+            cv.absdiff(grayFrame, previousFrame, diff);
+            
+            const totalMotion = cv.sum(diff)[0];
+            const motionIntensity = totalMotion / (grayFrame.rows * grayFrame.cols);
+            
+            diff.delete();
+            
+            // Blink detection based on motion and brightness patterns
+            if (brightnessSamples.length >= 5) {
+                const recentBrightness = brightnessSamples.slice(-3);
+                const avgRecent = recentBrightness.reduce((a, b) => a + b, 0) / recentBrightness.length;
+                const olderBrightness = brightnessSamples.slice(-6, -3);
+                
+                if (olderBrightness.length > 0) {
+                    const avgOlder = olderBrightness.reduce((a, b) => a + b, 0) / olderBrightness.length;
+                    const brightnessDrop = avgOlder - avgRecent;
+                    
+                    // Detect quick brightness drop (potential blink) with motion
+                    if (brightnessDrop > 5 && motionIntensity > motionThreshold) {
+                        const currentTime = Date.now();
+                        if (currentTime - lastMotionTime > 300) { // Minimum 300ms between detections
+                            lastMotionTime = currentTime;
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Update previous frame
+        if (previousFrame) {
+            previousFrame.delete();
+        }
+        previousFrame = grayFrame.clone();
+        
+        return false;
+    } catch (error) {
+        console.error('Motion detection error:', error);
+        return false;
+    }
+}
+
 // Process video frames for eye detection
 function processVideo() {
     if (!streaming) {
@@ -295,6 +367,7 @@ function processVideo() {
         // Process each detected face
         let eyesDetected = 0;
         let eyesOpen = 0;
+        let faceDetected = faces.size() > 0;
 
         for (let i = 0; i < faces.size(); ++i) {
             const face = faces.get(i);
@@ -309,7 +382,7 @@ function processVideo() {
             let eyes = new cv.RectVector();
             eyeClassifier.detectMultiScale(faceROI, eyes, 1.1, 3, 0);
 
-            eyesDetected = eyes.size();
+            eyesDetected += eyes.size();
 
             // Process detected eyes
             for (let j = 0; j < eyes.size(); ++j) {
@@ -352,8 +425,22 @@ function processVideo() {
             eyes.delete();
         }
 
-        // Enhanced blink detection logic
-        const currentEyeState = (eyesDetected > 0 && eyesOpen >= Math.ceil(eyesDetected * 0.5)) ? 'open' : 'closed';
+        // Enhanced blink detection logic with fallback when no face is detected
+        let currentEyeState;
+        
+        if (faceDetected && eyesDetected > 0) {
+            // Normal detection when face and eyes are visible
+            currentEyeState = (eyesOpen >= Math.ceil(eyesDetected * 0.5)) ? 'open' : 'closed';
+        } else {
+            // Fallback detection when face is not visible
+            // Use motion detection and brightness changes as proxy for blinks
+            currentEyeState = detectBlinkFromMotion(dstC1) ? 'closed' : 'open';
+            
+            // Display warning message
+            cv.putText(src, 'Face not detected - Using motion detection', 
+                      new cv.Point(20, 200),
+                      cv.FONT_HERSHEY_SIMPLEX, 0.6, [255, 255, 0, 255], 2);
+        }
 
         if (currentEyeState === 'closed' && lastEyeState === 'open') {
             // Eyes just closed - start tracking closure
@@ -405,13 +492,15 @@ function processVideo() {
             : 0;
 
         // Add debug information to canvas
-        cv.putText(src, `Eyes Detected: ${eyesDetected}`, new cv.Point(20, 120),
+        cv.putText(src, `Face Detected: ${faceDetected ? 'Yes' : 'No'}`, new cv.Point(20, 120),
                   cv.FONT_HERSHEY_SIMPLEX, 0.5, [255, 255, 255, 255], 1);
-        cv.putText(src, `Eyes Open: ${eyesOpen}`, new cv.Point(20, 140),
+        cv.putText(src, `Eyes Detected: ${eyesDetected}`, new cv.Point(20, 140),
                   cv.FONT_HERSHEY_SIMPLEX, 0.5, [255, 255, 255, 255], 1);
-        cv.putText(src, `Eye State: ${currentEyeState}`, new cv.Point(20, 160),
+        cv.putText(src, `Eyes Open: ${eyesOpen}`, new cv.Point(20, 160),
                   cv.FONT_HERSHEY_SIMPLEX, 0.5, [255, 255, 255, 255], 1);
-        cv.putText(src, `Closed Frames: ${eyeClosedFrames}`, new cv.Point(20, 180),
+        cv.putText(src, `Eye State: ${currentEyeState}`, new cv.Point(20, 180),
+                  cv.FONT_HERSHEY_SIMPLEX, 0.5, [255, 255, 255, 255], 1);
+        cv.putText(src, `Detection Mode: ${faceDetected ? 'Face-based' : 'Motion-based'}`, new cv.Point(20, 200),
                   cv.FONT_HERSHEY_SIMPLEX, 0.5, [255, 255, 255, 255], 1);
 
         if (avgBlinkRate < 10 || eyeClosedFrames > 15) {
