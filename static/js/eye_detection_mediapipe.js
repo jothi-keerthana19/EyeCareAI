@@ -373,6 +373,24 @@ function updateMetrics(blinkCount, eyeRatio) {
             eyeHealthAnalytics.recordEyeStrain(severity, cause);
         }
     }
+    
+    // Integrate with rest reminder system
+    if (typeof restReminders !== 'undefined' && restReminders) {
+        // Trigger reminders based on eye strain and drowsiness
+        if (drowsiness > 80) {
+            restReminders.onDrowsinessDetected(drowsiness);
+        }
+        
+        // Calculate eye strain level based on blink rate and drowsiness
+        const eyeStrainLevel = Math.max(
+            drowsiness,
+            avgBlinkRate < 10 ? 80 : avgBlinkRate < 12 ? 60 : 20
+        );
+        
+        if (eyeStrainLevel > 70) {
+            restReminders.onEyeStrainDetected(eyeStrainLevel);
+        }
+    }
 }
 
 // Update status message

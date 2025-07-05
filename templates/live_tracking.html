@@ -127,6 +127,33 @@
                         <i class="bi bi-display"></i> Run in Background
                     </button>
                 </div>
+                
+                <!-- Rest Reminder Settings -->
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h6><i class="bi bi-clock"></i> Rest Reminders</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="reminderInterval" class="form-label">Reminder Interval</label>
+                            <select class="form-select form-select-sm" id="reminderInterval" onchange="updateReminderInterval(this.value)">
+                                <option value="10">Every 10 minutes</option>
+                                <option value="15">Every 15 minutes</option>
+                                <option value="20" selected>Every 20 minutes (recommended)</option>
+                                <option value="30">Every 30 minutes</option>
+                                <option value="60">Every hour</option>
+                            </select>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-outline-primary btn-sm" onclick="testRestReminder()">
+                                <i class="bi bi-play"></i> Test Reminder
+                            </button>
+                            <button class="btn btn-outline-info btn-sm" onclick="showReminderInfo()">
+                                <i class="bi bi-info-circle"></i> About 20-20-20 Rule
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -203,6 +230,8 @@
 {% block scripts %}
 <!-- Analytics Script - Load first -->
 <script src="/static/js/analytics.js"></script>
+<!-- Rest Reminder System -->
+<script src="/static/js/rest_reminders.js"></script>
 <!-- MediaPipe Eye Detection Script (cvzone approach) -->
 <script src="/static/js/eye_detection_mediapipe.js"></script>
 
@@ -301,5 +330,60 @@
             stopSessionTimer();
         }
     });
+    
+    // Rest reminder functions
+    function updateReminderInterval(minutes) {
+        if (typeof restReminders !== 'undefined' && restReminders) {
+            restReminders.setReminderInterval(parseInt(minutes));
+        }
+    }
+    
+    function testRestReminder() {
+        if (typeof restReminders !== 'undefined' && restReminders) {
+            restReminders.triggerReminder();
+        } else {
+            alert('Rest reminder system not loaded yet. Please wait a moment and try again.');
+        }
+    }
+    
+    function showReminderInfo() {
+        const modal = document.createElement('div');
+        modal.className = 'modal fade show';
+        modal.style.display = 'block';
+        modal.innerHTML = `
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">The 20-20-20 Rule</h5>
+                        <button type="button" class="btn-close" onclick="this.closest('.modal').remove()"></button>
+                    </div>
+                    <div class="modal-body">
+                        <h6>What is the 20-20-20 Rule?</h6>
+                        <p>Every 20 minutes, look at something 20 feet away for at least 20 seconds.</p>
+                        
+                        <h6>Why is it important?</h6>
+                        <ul>
+                            <li>Reduces digital eye strain</li>
+                            <li>Prevents dry eyes</li>
+                            <li>Relaxes focusing muscles</li>
+                            <li>Improves long-term eye health</li>
+                        </ul>
+                        
+                        <h6>How our reminders help:</h6>
+                        <ul>
+                            <li>Gentle notifications at customizable intervals</li>
+                            <li>Guided 20-second break timer</li>
+                            <li>Breathing exercises for relaxation</li>
+                            <li>Eye strain relief overlay</li>
+                        </ul>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" onclick="this.closest('.modal').remove()">Got it!</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    }
 </script>
 {% endblock %}
