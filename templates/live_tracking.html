@@ -203,20 +203,8 @@
 {% block scripts %}
 <!-- Analytics Script - Load first -->
 <script src="/static/js/analytics.js"></script>
-<!-- Fixed Eye Detection Script -->
-<script src="/static/js/eye_detection_fixed.js"></script>
-
-<!-- OpenCV.js - Load with proper callback -->
-<script>
-window.Module = {
-    onRuntimeInitialized() {
-        if (typeof onOpenCvReady === 'function') {
-            onOpenCvReady();
-        }
-    }
-};
-</script>
-<script async src="https://docs.opencv.org/4.5.5/opencv.js" type="text/javascript"></script>
+<!-- Simple Eye Detection Script (No OpenCV required) -->
+<script src="/static/js/eye_detection_simple.js"></script>
 
 <script>
     let sessionStartTime = null;
