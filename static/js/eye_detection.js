@@ -1,7 +1,4 @@
-` tags. I'll ensure that the code is complete and maintains the original structure and indentation.
 
-```
-<replit_final_file>
 // Eye Detection using OpenCV.js with Face Mesh Landmarks for Blink Detection
 
 let video = null;
@@ -148,8 +145,6 @@ function startCamera() {
 
             updateStatus(errorMessage);
         });
-    } else {
-        stopCamera();
     }
 }
 
@@ -255,20 +250,6 @@ function loadClassifiersAlternative() {
     } else {
         updateStatus('OpenCV not fully loaded. Please refresh the page.');
     }
-}
-
-// Calculate Eye Aspect Ratio (EAR) similar to cvzone approach
-function calculateEyeAspectRatio(eyePoints) {
-    // Calculate vertical distances
-    const vertical1 = Math.sqrt(Math.pow(eyePoints[1].x - eyePoints[5].x, 2) + Math.pow(eyePoints[1].y - eyePoints[5].y, 2));
-    const vertical2 = Math.sqrt(Math.pow(eyePoints[2].x - eyePoints[4].x, 2) + Math.pow(eyePoints[2].y - eyePoints[4].y, 2));
-
-    // Calculate horizontal distance
-    const horizontal = Math.sqrt(Math.pow(eyePoints[0].x - eyePoints[3].x, 2) + Math.pow(eyePoints[0].y - eyePoints[3].y, 2));
-
-    // Calculate EAR
-    const ear = (vertical1 + vertical2) / (2.0 * horizontal);
-    return ear * 100; // Scale similar to cvzone ratio
 }
 
 // Process video frames for eye detection
