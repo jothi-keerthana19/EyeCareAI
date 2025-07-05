@@ -200,7 +200,16 @@
 <!-- Eye Detection Script - Load first -->
 <script src="/static/js/eye_detection.js"></script>
 
-<!-- OpenCV.js - Load without onload callback to prevent double-calling -->
+<!-- OpenCV.js - Load with proper callback -->
+<script>
+window.Module = {
+    onRuntimeInitialized() {
+        if (typeof onOpenCvReady === 'function') {
+            onOpenCvReady();
+        }
+    }
+};
+</script>
 <script async src="https://docs.opencv.org/4.5.5/opencv.js" type="text/javascript"></script>
 
 <script>

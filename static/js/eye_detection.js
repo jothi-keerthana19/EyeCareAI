@@ -1,3 +1,4 @@
+
 // Eye Detection using OpenCV.js
 
 let video = null;
@@ -20,6 +21,9 @@ let blinkRates = [];
 
 let drowsinessLevel = 0;
 let lastAlertTime = 0;
+
+// Track if OpenCV has been initialized to prevent double initialization
+let isOpenCVInitialized = false;
 
 // Initialize the video and canvas elements
 function initElements() {
@@ -44,6 +48,38 @@ function initElements() {
     canvasOutputCtx.font = '18px Arial';
     canvasOutputCtx.fillStyle = 'white';
     canvasOutputCtx.fillText('Loading OpenCV...', 20, 40);
+}
+
+// Setup event listeners for UI elements
+function setupEventListeners() {
+    const trackingButton = document.querySelector('.tracking-toggle');
+    if (trackingButton) {
+        trackingButton.addEventListener('click', function() {
+            const isStarting = this.innerHTML.includes('Start');
+            
+            if (isStarting) {
+                this.innerHTML = '<i class="bi bi-stop-circle"></i> Stop Tracking';
+                startCamera();
+                
+                // Update status badge
+                const statusBadge = document.querySelector('.tracking-status');
+                if (statusBadge) {
+                    statusBadge.className = 'badge bg-success tracking-status';
+                    statusBadge.textContent = 'Tracking Active';
+                }
+            } else {
+                this.innerHTML = '<i class="bi bi-play-circle"></i> Start Tracking';
+                stopCamera();
+                
+                // Update status badge
+                const statusBadge = document.querySelector('.tracking-status');
+                if (statusBadge) {
+                    statusBadge.className = 'badge bg-secondary tracking-status';
+                    statusBadge.textContent = 'Tracking Stopped';
+                }
+            }
+        });
+    }
 }
 
 // Start the video capture
@@ -461,9 +497,6 @@ function updateStatus(message) {
     }
 }
 
-// Track if OpenCV has been initialized to prevent double initialization
-let isOpenCVInitialized = false;
-
 // Handle OpenCV.js loaded event
 function onOpenCvReady() {
     // Prevent multiple initializations
@@ -479,7 +512,14 @@ function onOpenCvReady() {
     setTimeout(() => {
         const statusElement = document.getElementById('status');
         if (statusElement) {
-            statusElement.textContent = 'OpenCV.js loaded successfully';
+            statusElement.textContent = 'OpenCV.js loaded successfully. Click Start Tracking to begin.';
+        }
+
+        if (canvasOutput && canvasOutputCtx) {
+            canvasOutputCtx.clearRect(0, 0, canvasOutput.width, canvasOutput.height);
+            canvasOutputCtx.font = '18px Arial';
+            canvasOutputCtx.fillStyle = 'white';
+            canvasOutputCtx.fillText('OpenCV.js loaded successfully. Click Start Tracking to begin.', 20, 40);
         }
 
         console.log('OpenCV initialization complete');
