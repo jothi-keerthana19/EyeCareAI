@@ -493,6 +493,19 @@ function updateMetrics(blinkRate, drowsiness, eyesDetected, blinkFrames) {
     if (totalBlinksElement) {
         totalBlinksElement.textContent = blinkCount;
     }
+    
+    // Send data to analytics system if available
+    if (typeof eyeHealthAnalytics !== 'undefined' && eyeHealthAnalytics) {
+        eyeHealthAnalytics.recordBlinkData(blinkRate);
+        eyeHealthAnalytics.recordDrowsinessData(drowsiness);
+        
+        // Record eye strain event if conditions are met
+        if (blinkRate < 12 || drowsiness > 50) {
+            const severity = drowsiness > 70 ? 'high' : blinkRate < 10 ? 'high' : 'medium';
+            const cause = drowsiness > 50 ? 'drowsiness' : 'low_blink_rate';
+            eyeHealthAnalytics.recordEyeStrain(severity, cause);
+        }
+    }
 }
 
 // Show notification

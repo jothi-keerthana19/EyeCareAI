@@ -170,6 +170,17 @@ def reports():
                           drowsiness_data=eye_health_data.drowsiness_data,
                           screen_time=eye_health_data.screen_time)
 
+@app.route('/analytics')
+def analytics():
+    """Display comprehensive eye health analytics"""
+    # Get comprehensive analytics data
+    current_metrics = eye_health_data.get_current_metrics()
+    health_insights = eye_health_data.get_health_insights()
+    
+    return render_template('analytics.html',
+                         current_metrics=current_metrics,
+                         health_insights=health_insights)
+
 @app.route('/settings')
 def settings():
     return render_template('settings.html')

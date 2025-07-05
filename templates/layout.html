@@ -110,6 +110,9 @@
                         <a class="nav-link {% if request.path == '/reports' %}active{% endif %}" href="{{ url_for('reports') }}">Reports</a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link {% if request.path == '/analytics' %}active{% endif %}" href="{{ url_for('analytics') }}">Analytics</a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link {% if request.path == '/eye-exercises' %}active{% endif %}" href="{{ url_for('eye_exercises') }}">Eye Exercises</a>
                     </li>
                     <li class="nav-item">
